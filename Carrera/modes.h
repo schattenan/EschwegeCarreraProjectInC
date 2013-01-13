@@ -8,7 +8,6 @@
 struct RACE{
          
         bool finished;
-        bool canceled;
         bool started;
         PLAYER players[4];
         DEVICE device;   
@@ -31,7 +30,6 @@ typedef struct RACE RACE;
 void initRACE(RACE *ret);
 void match (RACE *ret);
 void knockOut (RACE *ret);
-void cancel (RACE *ret);
 void placingTimeAttack(RACE ret);
 void run (RACE *ret);
 

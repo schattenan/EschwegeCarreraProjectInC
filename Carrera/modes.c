@@ -3,7 +3,6 @@
 void initRACE  (RACE *ret) {
          
               ret->finished=false;
-              ret->canceled=false;
               ret->started=false;
 			  ret->match_Active=false;
 			  ret->knockOut_Active=false;
@@ -58,7 +57,6 @@ void match (RACE *ret) {
 
 void knockOut (RACE *ret) {   //To-Do 
 
-	int i;
 
 	if(!ret->players[ret->playerLine].finished)
 		nextRound(&ret->players[ret->playerLine],ret->currentTime);
@@ -83,13 +81,6 @@ void knockOut (RACE *ret) {   //To-Do
 
 	}
 
-}
-
-void cancel (RACE *ret) {   //cancel a match
-              
-              ret->finished=true;
-              ret->canceled=true;
-              
 }
 
 void placingTimeAttack(RACE *ret) {
@@ -196,7 +187,7 @@ void initUI(RACE *ret) {
 		//system("cls");
 		printf("\nWelcome to the BG Carrera Application \n");
 		printf("_____________________________________________\n\n\n");
-		printf("\nWhat kind of Game Mode you want to play?\n\n");
+		printf("\nWhat Game Mode you want to play?\n\n");
 		printf("     1) Race\n"); 
 		printf("     2) Knock Out\n");
 		printf("     3) Time Attack\n\n");
@@ -345,7 +336,7 @@ void initUI(RACE *ret) {
 		system("cls");
 		printf("\nWelcome to the BG Carrera Application \n");
 		printf("_____________________________________________\n\n\n");
-		printf("Instert the name of the Player(s)\n\n");
+		printf("Insert the name of the Player(s)\n\n");
 
 		if(ret->numberOfPlayers>0)printf("     1) %s\n",ret->players[0].playername); 
 		if(ret->numberOfPlayers>1)printf("     2) %s\n",ret->players[1].playername);
@@ -508,6 +499,7 @@ DWORD WINAPI updateTime(LPVOID data)
 		}
 	}while(!(ret->finished));
 	
+	return 0;
 }
 
 void printTime(RACE *ret, int player, bool total)
