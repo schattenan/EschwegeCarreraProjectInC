@@ -1,9 +1,8 @@
 #include "player.h"
 
+void initPLAYER ( PLAYER *start) {  //initiation of the player struct, necessary in any means
 
-
-void initPLAYER ( PLAYER *start) {  //initiation of the player, necessary in any means, get used to it
-
+	int i;
     start->rank=0;
     start->track=0;
     start->device=0;
@@ -11,6 +10,10 @@ void initPLAYER ( PLAYER *start) {  //initiation of the player, necessary in any
     start->bestRound=0;
     start->banned=false;
 	start->finished=false;
+	for(i=0;i<99;i++)
+	{
+		start->roundTime[i]=0;
+	}
 }
 
 void nextRound(PLAYER *start, clock_t currentTime) {
@@ -19,34 +22,30 @@ void nextRound(PLAYER *start, clock_t currentTime) {
 	int i=0;
 	clock_t timer1;
 
-	if(start->rounds>-1)
+	//This is due how it works, at the beginning, before the game starts, every player has a round count of -1
+	if(start->rounds>-1)  //if player is crossing the line
 	{
 		timer1=clock();
 
-		if (! (start->rounds>0)  )
-		{
-			start->roundTime[start->rounds]= timer1-currentTime;
-			//printf(" ---------------------------%u-------------------------",start->roundTime[start->rounds]/1000);
-		}
-		else
-		{
-			start->roundTime[start->rounds]=timer1-currentTime/*start->roundTime[start->rounds-1]*/;
-			//printf(" ---------------------------%u-------------------------",start->roundTime[start->rounds]/1000);
-		}
+		start->roundTime[start->rounds] = timer1-currentTime;  //Set the total time of the finished round
 
-		// --------- Checking best laps---------
+		// --------- Checking for best laps---------
 		if(start->bestRound==0)
 			start->bestRound=0;
 		if( start->roundTime[start->bestRound] > start->roundTime[start->rounds] )
 			start->bestRound=start->rounds;
 
+		//Initiate new round
 		start->rounds++;
 		start->roundTime[start->rounds]=clock();
+		start->roundTime[start->rounds+1]=clock();  //Important for export
 
 	}
 	else 
 	{
+		//Start the game, initiation
 			start->rounds++;
 			start->startTime=clock();
+			start->roundTime[start->rounds+1]=clock();
 	}
 }  

@@ -34,48 +34,55 @@ void initRACE  (RACE *ret) {
 
 void match (RACE *ret) {
 
-	nextRound(&ret->players[ret->playerLine],ret->currentTime);
+	nextRound(&ret->players[ret->playerLine],ret->currentTime);  //sets new round
 
 
-	if(ret->players[ret->playerLine].rounds == ret->maxRounds)
+	if(ret->players[ret->playerLine].rounds == ret->maxRounds)  //player has finished the race
 	{
 		setPower( &ret->device,(ret->playerLine),false );  //Power off for player 
 
-		ret->knockOutPlayer++;
+
+
+		ret->knockOutPlayer++;  //one less player active
 		ret->players[ret->playerLine].finished=true;
 		ret->players[ret->playerLine].endTime=clock();
-		ret->players[ret->playerLine].rank = ret->knockOutPlayer;
+		ret->players[ret->playerLine].rank = ret->knockOutPlayer;  //ranking, count up 1-4
 
 		 // -------------------  Checks all players  -------------------------- \\ 
 
-		if(ret->knockOutPlayer==ret->numberOfPlayers)
+		if(ret->knockOutPlayer==ret->numberOfPlayers) //If all player have finished, the race has ended
 		{
 			ret->finished=true;   //race has ended
 		}
 	}
 }
 
-void knockOut (RACE *ret) {   //To-Do 
+void knockOut (RACE *ret) {   
 
+	int i;
 
-	if(!ret->players[ret->playerLine].finished)
+	if(!ret->players[ret->playerLine].finished)   //If player is finished, he won't be able to drive more rounds
 		nextRound(&ret->players[ret->playerLine],ret->currentTime);
 
-	if(ret->players[ret->playerLine].rounds>0) {
+	if(ret->players[ret->playerLine].rounds>0) {   //All player need at least one round
 
-		ret->knockOutPlayerX[ret->players[ret->playerLine].rounds-1]++;
+		ret->knockOutPlayerX[ret->players[ret->playerLine].rounds-1]++;   //counting, how many players have reached a specific lap number
 
+		//If a player is the last; for example: 4th in the first round, 3rd in the second round, etc..
 		if(ret->knockOutPlayerX[ret->players[ret->playerLine].rounds-1]==ret->numberOfPlayers-ret->players[ret->playerLine].rounds+1)
 		{
-			ret->knockOutPlayerX[ret->players[ret->playerLine].rounds-1]=0;
-			ret->knockOutPlayer++; 
+			ret->knockOutPlayerX[ret->players[ret->playerLine].rounds-1]=0;   //counter is going to be resseted
+			ret->knockOutPlayer++;  //one player out
 
 			ret->players[ret->playerLine].finished=true;
 			ret->players[ret->playerLine].endTime=clock();
-			setPower( &ret->device,ret->playerLine,false );
-			ret->players[ret->playerLine].rank=ret->numberOfPlayers-ret->players[ret->playerLine].rounds+1;
+			for(i=ret->players[ret->playerLine].rounds;i<ret->maxRounds+1;i++) //all future rounds are going to be set (important for export)
+				ret->players[ret->playerLine].roundTime[i]= ret->players[ret->playerLine].endTime;
 
-			if(ret->knockOutPlayer==ret->numberOfPlayers)
+			setPower( &ret->device,ret->playerLine,false );  //Turn of the player's track
+			ret->players[ret->playerLine].rank=ret->numberOfPlayers-ret->players[ret->playerLine].rounds+1; //Set rank, counting down from 4 to 1
+
+			if(ret->knockOutPlayer==ret->numberOfPlayers) //If all players have been knocked out, the game is finished
 				ret->finished=true;	
 		}
 
@@ -91,12 +98,20 @@ void placingTimeAttack(RACE *ret) {
 	int platz[4];
 	int j,k=0,m;
 
-	for(i=0;i<ret->numberOfPlayers;i++)  //n*n
+	//This is a genric sort feature, Part 1 
+	for(i=0;i<ret->numberOfPlayers;i++) 
+	{
+		for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  // sets all missing lap times to endTime (important for export)
+			ret->players[ret->playerLine].roundTime[j]=clock();
+		//n*n
 		for(j=0;j<ret->numberOfPlayers;j++)
 		{
 			if(runde[i]>=runde[j])
-				win[i]++;
+				win[i]++;  // counts how many times a player has more rounds finished than another 
 		}
+	}
+
+	//This is a genric sort feature, Part 2
 	for(i=0;i<ret->numberOfPlayers;i++) //Place
 	{
 		m=k;
@@ -116,7 +131,7 @@ void run (RACE *ret) {
 
 	HANDLE hThread[2];	
 
-	countdown(ret);
+	countdown(ret);  //countdown
 
 	if(!ret->started)
 	{
@@ -127,23 +142,26 @@ void run (RACE *ret) {
 		if(ret->numberOfPlayers>1){setPower( &ret->device,1,true ); ret->players[1].roundTime[0]=clock(); }
 		if(ret->numberOfPlayers>2){setPower( &ret->device,2,true ); ret->players[2].roundTime[0]=clock(); }
 		if(ret->numberOfPlayers>3){setPower( &ret->device,3,true ); ret->players[3].roundTime[0]=clock(); }
+		
+		hThread[0] = CreateThread(NULL,0, raceloop, ret, 0, NULL);  //Start first thread with function raceloop
+		hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL); //Start second thread with function updateTime
 
-		hThread[0] = CreateThread(NULL,0, raceloop, ret, 0, NULL);
-		hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL);
-
-		WaitForMultipleObjects( 2, hThread , true , INFINITE  ); 
-		hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL);  // updating UI a last time
-		WaitForMultipleObjects( 1, hThread , true , INFINITE  ); 
+		WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
+		
+		//hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL);  // updating UI a last time
+		//WaitForMultipleObjects( 1, hThread , true , INFINITE  ); 
 
 		CloseHandle(hThread[0]);
 		CloseHandle(hThread[1]);
+
 	}
 	printf("\n\n\nRace has been finished");
-	updateTime(ret);
+	updateTime(ret);  //Last time update for ranking
 }
 
 void gotoxy(int x, int y)
 {
+
     HANDLE stdOutput;
     COORD pos;
 
@@ -161,18 +179,18 @@ bool confirm() {
 
 	do{
 		a=getch();
-		if(a==89 || a ==121)
+		if(a==89 || a ==121)  // Y and y , success
 		{
 			system("cls");
 			return true;
 		}
 		
-		if(a==78 || a==110)
+		if(a==78 || a==110)  // N and n , failure
 		{	
 			system("cls");
 			return false;
 		}
-	}while(1);
+	}while(1);  //As long as somebody presses y or n
 }
 
 void initUI(RACE *ret) {
@@ -225,14 +243,12 @@ void initUI(RACE *ret) {
 			if( (test) )
 			{
 				decision=true;
-				ret->maxRounds=2;
+				ret->maxRounds=20;  
 				ret->timeAttack_Active=true;
 			}
 		}
 
-	}while(!decision && !test);
-
-
+	}while(!decision && !test);  //Cant skip
 
 	if(ret->match_Active)
 	{
@@ -430,11 +446,11 @@ void getName(char name[20]) {
 		printf("\nPlease insert the name\n\n");
 
 		fflush(stdin);
-		fgets(name, 20, stdin);
+		fgets(name, 20, stdin);  //Max length of name: 20 characters 
 
 		ln = strlen(name) - 1;
-		if (name[ln] == '\n')
-			name[ln] = '\0';
+		if (name[ln] == '\n') // if name is complete 
+			name[ln] = '\0';  // sign of a finished string
 		printf("Your name is '%s' ",name);
 
 		a = getch();
@@ -449,7 +465,7 @@ void buildTable (RACE *ret)
 	gotoxy(0,1);
 	printf("        I                I                I                I                 ");
 
-	for(i=0;i<ret->numberOfPlayers;i++)
+	for(i=0;i<ret->numberOfPlayers;i++)  //Playernames
 	{
 		gotoxy(10+i*17,1);
 		printf("%s",ret->players[i].playername);
@@ -458,7 +474,7 @@ void buildTable (RACE *ret)
 	gotoxy(0,2);
 	printf("--------I----------------I----------------I----------------I-----------------");
 
-	for(i=0;i<ret->maxRounds;i++)
+	for(i=0;i<ret->maxRounds;i++) 
 	{
 		gotoxy(0,i+3);
 		printf("Lap %02d  I                I                I                I                \n",i+1);
@@ -478,27 +494,28 @@ DWORD WINAPI updateTime(LPVOID data)
 
 	RACE *ret;
 	ret = (int) data;     // pointer is correct, ignore warning
-	
+
 	do{
-		for(i=0;i<ret->numberOfPlayers;i++)
+
+		for(i=0;i<ret->numberOfPlayers;i++)  
 		{
-			if(!ret->players[i].finished)
+			if(!ret->players[i].finished) //times are updated as long as the player did not finsished the game
 			{
 				gotoxy(10+i*17,ret->players[i].rounds+3);  
 				if(!(ret->players[i].rounds==-1))
-					printTime(ret,i,false);
+					printTime(ret,i,false);  //Print the time of the players current round
 
 				gotoxy(10+i*17,ret->maxRounds+4);
-				printTime(ret,i,true);
+				printTime(ret,i,true);  //Update overall time
 			}
-			if(ret->players[i].finished)
+			if(ret->players[i].finished)  //If finished
 			{
 				gotoxy(10+i*17,ret->maxRounds+5);
-				printf("    %d.",ret->players[i].rank);
+				printf("    %d.",ret->players[i].rank);   //print rank
 			}
 		}
-	}while(!(ret->finished));
-	
+	}while( ! (ret->finished) ); //As long as the game is running
+
 	return 0;
 }
 
@@ -508,45 +525,43 @@ void printTime(RACE *ret, int player, bool total)
 	clock_t timerX;
 	timerX=clock();
 
-		if(total)
+		if(total)  // prints the overall time
 		{
 			millesekunden = (float) (timerX-ret->currentTime);
 			if(ret->players[player].finished)
-				millesekunden = (float) ret->players[player].roundTime[ret->players[player].rounds]-ret->players[player].roundTime[0];
+				millesekunden = (float) ret->players[player].roundTime[ret->players[player].rounds]-ret->players[player].roundTime[0]; //Last round time minus the time of when the race started
 		}
-		else{			
-			millesekunden = (float) (timerX-ret->players[player].roundTime[ret->players[player].rounds]);
-			if(ret->players[player].finished)
-				millesekunden = (float) ret->players[player].roundTime[ret->players[player].rounds]-ret->players[player].roundTime[ret->players[player].rounds-1];
+		else{	  //prints the current round time		
+			millesekunden = (float) (timerX-ret->players[player].roundTime[ret->players[player].rounds]);  //current time minus the time of when the lap started
 		}
 	
-	
+	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
 	sekunden = millesekunden / 1000;
 	minuten = sekunden / 60;
 	millesekunden = millesekunden - 1000*sekunden;	
 	sekunden = sekunden - 60*minuten;
-	printf("%02d:%02d:%03d\n",minuten,sekunden,millesekunden);
+	printf("%02d:%02d:%03d\n",minuten,sekunden,millesekunden);  //print
 }
 
-DWORD WINAPI raceloop(LPVOID data) {
-	
-	int k;
+DWORD WINAPI raceloop(LPVOID data) 
+{
+	int i,j,k;
 	clock_t timer1;
 
 	RACE *ret;
 	ret = (int) data;     // pointer is correct, ignore warning
 
-	do
-	{
+	do{
+
 		for(k=0; k < ret->numberOfPlayers ;k++)
-			{
-			playerCrossesLine(& ret->device, k);
+		{
+			playerCrossesLine(& ret->device, k);  //checks if there are currently player crossing the start point
 				
-			if(ret->device.activeTrackSensor[k] && !ret->activeSensor[k] && !ret->players[k].finished)
-			{
+			if(ret->device.activeTrackSensor[k] && !ret->activeSensor[k] && !ret->players[k].finished) //if player is currently crossing the start
+			{     
 
 				ret->playerLine=k;
-				ret->activeSensor[k]=true;
+				ret->activeSensor[k]=true;  //This is neccesarry to make sure that the player just gets one new round at a time
 
 				 //Big issue if there are 2 active game modes
 
@@ -557,37 +572,41 @@ DWORD WINAPI raceloop(LPVOID data) {
 				if(ret->timeAttack_Active) 
 				{
 					nextRound(&ret->players[ret->playerLine],ret->currentTime);
+
+					/*   @TO-DO: This is important for a future implementation of a dynamic round cap, not yet working, especially with multithreading 
 					if(ret->players[ret->playerLine].rounds==ret->maxRounds-1)
 					{
-						ret->maxRounds++;
-						buildTable(ret);
+						//ret->maxRounds++;
+						//buildTable(ret);
 					}
+					*/
 				}
 			}
-			if( (!ret->device.activeTrackSensor[k]) && ret->activeSensor[k])
+			if( (!ret->device.activeTrackSensor[k]) && ret->activeSensor[k])  //TThis is neccesarry to make sure that the player just gets one new round at a time
 				ret->activeSensor[k]=false;
+
 			timer1=clock();
-			if(  (timer1-ret->currentTime) >  ret->maxTime && ret->timeAttack_Active) //For TimeAttack
+			if(  (timer1-ret->currentTime) >  ret->maxTime && ret->timeAttack_Active) //For TimeAttack, if the maximum time is reached
 			{
 				//Turn power off for all players
-				setPower( &ret->device,0,false );   
-				setPower( &ret->device,1,false );
-				setPower( &ret->device,2,false );
-				setPower( &ret->device,3,false );
 				ret->finished=true;	//race has ended
-				ret->players[0].finished=true;
-				ret->players[1].finished=true;
-				ret->players[2].finished=true;
-				ret->players[3].finished=true;
-				ret->players[0].endTime=clock();
-				ret->players[1].endTime=clock();
-				ret->players[2].endTime=clock();
-				ret->players[3].endTime=clock();
 
-				placingTimeAttack(ret);
+				for(i=0;i<ret->numberOfPlayers;i++)
+				{
+					setPower( &ret->device,i,false );  //Turn off all tracks
+					ret->players[i].finished=true;   
+					ret->players[i].endTime=clock();
+					for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  //Sets all rounds to endTime (important for export)
+						ret->players[i].roundTime[j]=ret->players[i].endTime=clock();
+				}
+				
+				placingTimeAttack(ret);  //Afterwards setting the ranks
 			}
+			updateTime(ret);  //Updateting the UI
 		}
-	}while(! (ret->finished) );	
+	}while( !(ret->finished) ); //As long as the game is running
+
+	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 	return 0;
 }
@@ -598,18 +617,18 @@ void countdown(RACE *ret) {
 	clock_t timer1;
 
 	timer1=clock();
-	while(i<4) {
+	while(i<4) {   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
 
 		ret->currentTime= clock();
 
-		if(! ((ret->currentTime-timer1)/CLOCKS_PER_SEC < 1) )  
+		if(! ((ret->currentTime-timer1)/CLOCKS_PER_SEC < 1) )   //If one second has passed
 		{
 			timer1=clock();  //Reset CurrentTime
 			ret->device.trafficLightStatus=i;  //set current status
 
-			setLights(& ret->device);
+			setLights(& ret->device);  //Setting the LEDs of the traffic lights
 			i++;
-			if(i==3)
+			if(i==3)  //after 3 seconds the game has officially started
 				ret->started=true;
 		}
 	}
