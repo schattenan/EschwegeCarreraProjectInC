@@ -34,7 +34,7 @@ void initRACE  (RACE *ret) {
 
 void match (RACE *ret) {
 
-	nextRound(&ret->players[ret->playerLine],ret->currentTime);  //sets new round
+	nextRound(&ret->players[ret->playerLine],ret->startTime);  //sets new round
 
 
 	if(ret->players[ret->playerLine].rounds == ret->maxRounds)  //player has finished the race
@@ -62,7 +62,7 @@ void knockOut (RACE *ret) {
 	int i;
 
 	if(!ret->players[ret->playerLine].finished)   //If player is finished, he won't be able to drive more rounds
-		nextRound(&ret->players[ret->playerLine],ret->currentTime);
+		nextRound(&ret->players[ret->playerLine],ret->startTime);
 
 	if(ret->players[ret->playerLine].rounds>0) {   //All player need at least one round
 
@@ -98,7 +98,7 @@ void placingTimeAttack(RACE *ret) {
 	int platz[4];
 	int j,k=0,m;
 
-	//This is a genric sort feature, Part 1 
+	//This is a generic sort feature, Part 1 
 	for(i=0;i<ret->numberOfPlayers;i++) 
 	{
 		for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  // sets all missing lap times to endTime (important for export)
@@ -269,7 +269,7 @@ void initUI(RACE *ret) {
 				test=confirm();
 			}
 			else
-				printf("\nYou have choosen %d. Please insert valid number (1-99)",ret->maxRounds);
+				printf("\nYou have choosen %d. Please insert a valid number (1-99)",ret->maxRounds);
 	
 		}while(!test);
 	}
@@ -294,7 +294,7 @@ void initUI(RACE *ret) {
 
 			}
 			else
-				printf("\nYou have choosen %d. Please insert valid number (1-9)",ret->maxRounds);
+				printf("\nYou have choosen %d. Please insert a valid number (1-9)",ret->maxRounds);
 	
 		}while(!test);
 	}
@@ -493,13 +493,13 @@ DWORD WINAPI updateTime(LPVOID data)
 	int i;
 
 	RACE *ret;
-	ret = (int) data;     // pointer is correct, ignore warning
+	ret = (int) data;     // pointer is working fine, ignore warning
 
 	do{
 
 		for(i=0;i<ret->numberOfPlayers;i++)  
 		{
-			if(!ret->players[i].finished) //times are updated as long as the player did not finsished the game
+			if(!ret->players[i].finished && ret->players[i].rounds>=0) //times are updated as long as the player has started and not finsished the game
 			{
 				gotoxy(10+i*17,ret->players[i].rounds+3);  
 				if(!(ret->players[i].rounds==-1))
@@ -522,17 +522,15 @@ DWORD WINAPI updateTime(LPVOID data)
 void printTime(RACE *ret, int player, bool total)
 {
 	int minuten, sekunden, millesekunden;
-	clock_t timerX;
-	timerX=clock();
 
 		if(total)  // prints the overall time
 		{
-			millesekunden = (float) (timerX-ret->currentTime);
+			millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds+1] - ret->startTime); //current time minus start time
 			if(ret->players[player].finished)
-				millesekunden = (float) ret->players[player].roundTime[ret->players[player].rounds]-ret->players[player].roundTime[0]; //Last round time minus the time of when the race started
+				millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds]- ret->startTime ); // round time minus the time of when the race started
 		}
 		else{	  //prints the current round time		
-			millesekunden = (float) (timerX-ret->players[player].roundTime[ret->players[player].rounds]);  //current time minus the time of when the lap started
+			millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds+1] - ret->players[player].roundTime[ret->players[player].rounds]);  //current time minus the time of when the lap started
 		}
 	
 	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
@@ -546,15 +544,15 @@ void printTime(RACE *ret, int player, bool total)
 DWORD WINAPI raceloop(LPVOID data) 
 {
 	int i,j,k;
-	clock_t timer1;
 
 	RACE *ret;
-	ret = (int) data;     // pointer is correct, ignore warning
+	ret = (int) data;     // pointer is working fine, ignore warning
 
 	do{
 
 		for(k=0; k < ret->numberOfPlayers ;k++)
-		{
+		{			
+			ret->players[k].roundTime[ret->players[k].rounds+1]=clock();
 			playerCrossesLine(& ret->device, k);  //checks if there are currently player crossing the start point
 				
 			if(ret->device.activeTrackSensor[k] && !ret->activeSensor[k] && !ret->players[k].finished) //if player is currently crossing the start
@@ -571,7 +569,7 @@ DWORD WINAPI raceloop(LPVOID data)
 					knockOut( ret);
 				if(ret->timeAttack_Active) 
 				{
-					nextRound(&ret->players[ret->playerLine],ret->currentTime);
+					nextRound(&ret->players[ret->playerLine],ret->startTime);
 
 					/*   @TO-DO: This is important for a future implementation of a dynamic round cap, not yet working, especially with multithreading 
 					if(ret->players[ret->playerLine].rounds==ret->maxRounds-1)
@@ -582,11 +580,13 @@ DWORD WINAPI raceloop(LPVOID data)
 					*/
 				}
 			}
-			if( (!ret->device.activeTrackSensor[k]) && ret->activeSensor[k])  //TThis is neccesarry to make sure that the player just gets one new round at a time
+
+			
+
+			if( (!ret->device.activeTrackSensor[k]) && ret->activeSensor[k])  //This is neccesarry to make sure that the player just gets one new round at a time
 				ret->activeSensor[k]=false;
 
-			timer1=clock();
-			if(  (timer1-ret->currentTime) >  ret->maxTime && ret->timeAttack_Active) //For TimeAttack, if the maximum time is reached
+			if(  ( ret->players[k].roundTime[ret->players[k].rounds+1] - ret->startTime) >  ret->maxTime && ret->timeAttack_Active) //For TimeAttack, if the maximum time is reached
 			{
 				//Turn power off for all players
 				ret->finished=true;	//race has ended
@@ -602,11 +602,9 @@ DWORD WINAPI raceloop(LPVOID data)
 				
 				placingTimeAttack(ret);  //Afterwards setting the ranks
 			}
-			updateTime(ret);  //Updateting the UI
+			//updateTime(ret);  //Updateting the UI
 		}
 	}while( !(ret->finished) ); //As long as the game is running
-
-	printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 	return 0;
 }
@@ -619,9 +617,9 @@ void countdown(RACE *ret) {
 	timer1=clock();
 	while(i<4) {   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
 
-		ret->currentTime= clock();
+		ret->startTime = clock();
 
-		if(! ((ret->currentTime-timer1)/CLOCKS_PER_SEC < 1) )   //If one second has passed
+		if(! ((ret->startTime-timer1)/CLOCKS_PER_SEC < 1) )   //If one second has passed
 		{
 			timer1=clock();  //Reset CurrentTime
 			ret->device.trafficLightStatus=i;  //set current status

@@ -43,15 +43,14 @@ void exportCSV(RACE *ret)
 	fprintf(datei,"\n");
 
 	//  ==  Number of the max. Rounds ==
-	fprintf(datei,"%d",ret->maxRounds-1);
+	fprintf(datei,"%d",ret->maxRounds);
 	fprintf(datei,"\n");
-	printf("%d \n",ret->maxRounds-1);
+
 
 	//  ==  Player names ==
 	for(i=0;i<ret->numberOfPlayers;i++)
 	{
 		fprintf(datei,"%s",ret->players[i].playername);
-		printf("%d",ret->numberOfPlayers);
 		if(i<ret->numberOfPlayers-1)
 			fprintf(datei,"%c",SEPERATOR);
 	}
@@ -60,9 +59,8 @@ void exportCSV(RACE *ret)
 	//  ==  Round time for each player for each round ==
 	for(i=0;i<ret->maxRounds;i++)
 	{
-		for(j=1;j<ret->numberOfPlayers;j++)
+		for(j=0;j<ret->numberOfPlayers;j++)
 		{
-			printf("%d",ret->numberOfPlayers);
 			exportTime(datei,ret,j,i);
 			if(j<ret->numberOfPlayers-1)
 				fprintf(datei,"%c",SEPERATOR);

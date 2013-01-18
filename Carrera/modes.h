@@ -14,7 +14,7 @@ struct RACE{
 		bool knockOut_Active;
 		bool timeAttack_Active;
 		clock_t maxTime;
-		clock_t currentTime;
+		clock_t startTime;
 		int knockOutPlayer; 
 		int knockOutPlayerX[4]; 
 		int playerLine;
@@ -46,7 +46,7 @@ The function is the logic for the Game Mode knockout, it checks for specific con
 
 */
 
-void placingTimeAttack(RACE ret);
+void placingTimeAttack(RACE *ret);
 /*
 
 The function is called after a game of 'Time Attack' has been finished.
