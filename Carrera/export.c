@@ -24,8 +24,9 @@ void exportCSV(RACE *ret)
 
 	if( (datei = fopen(EXPORTPATH,"w")) == NULL )
 	{
-		printf("Failure accessing stats.csv");
-		exit(0);
+		printf("\n\n\n\n\nFailure accessing %s \n",EXPORTPATH);
+		system("pause");
+		exit(1);
 	}
 
 
@@ -33,9 +34,9 @@ void exportCSV(RACE *ret)
 	if(ret->match_Active)
 		fprintf(datei,"Rennen");
 	if(ret->knockOut_Active)
-		fprintf(datei,"Der Letzte fliegt");
+		fprintf(datei,"Knock Out");
 	if(ret->timeAttack_Active)
-		fprintf(datei,"Time Attack");
+		fprintf(datei,"Zeitrennen");
 	fprintf(datei,"\n");
 
 	//  ==  Number of Players ==
@@ -100,7 +101,7 @@ void exportCSV(RACE *ret)
 
 	fclose(datei);
 
-	system(IMPORTPATH);  //Opens the website for printing
+	system(IMPORTPATH);  //Does open the website for printing
 
 }
 
@@ -110,7 +111,7 @@ void exportTime(FILE *datei, RACE *ret, int player, int round)
 
 	//Getting the time, very similar to function printTime in modes.c
 	if(round==0)
-		millesekunden = ret->players[player].roundTime[0]-ret->players[player].startTime;
+		millesekunden = ret->players[player].roundTime[0]-ret->startTime;
 	else
 		millesekunden = ret->players[player].roundTime[round]-ret->players[player].roundTime[round-1];
 
@@ -128,7 +129,7 @@ void exportTotalTime(FILE *datei, RACE *ret, int player)
 	int minuten,sekunden,millesekunden;
 
 	//Getting the total time, very similar to function exportTime
-	millesekunden = ret->players[player].endTime-ret->players[player].startTime;
+	millesekunden = ret->players[player].endTime-ret->startTime;
 
 	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
 	sekunden = millesekunden / 1000;

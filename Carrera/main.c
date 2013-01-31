@@ -6,7 +6,7 @@ int main() {
 
 	char f;
 	RACE objectRace;
-	
+
 	initRACE(&objectRace);
 	printf("\nBuild : %s \n",BUILD);
 	

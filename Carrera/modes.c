@@ -34,12 +34,12 @@ void initRACE  (RACE *ret) {
 
 void match (RACE *ret) {
 
-	nextRound(&ret->players[ret->playerLine],ret->startTime);  //sets new round
+	nextRound(&ret->players[ret->playerLine]);  //sets new round
 
 
 	if(ret->players[ret->playerLine].rounds == ret->maxRounds)  //player has finished the race
 	{
-		setPower( &ret->device,(ret->playerLine),false );  //Power off for player 
+		setPower( &ret->device,(ret->playerLine),false );  //Power off player 
 
 
 
@@ -62,7 +62,7 @@ void knockOut (RACE *ret) {
 	int i;
 
 	if(!ret->players[ret->playerLine].finished)   //If player is finished, he won't be able to drive more rounds
-		nextRound(&ret->players[ret->playerLine],ret->startTime);
+		nextRound(&ret->players[ret->playerLine]);
 
 	if(ret->players[ret->playerLine].rounds>0) {   //All player need at least one round
 
@@ -148,9 +148,6 @@ void run (RACE *ret) {
 
 		WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
 		
-		//hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL);  // updating UI a last time
-		//WaitForMultipleObjects( 1, hThread , true , INFINITE  ); 
-
 		CloseHandle(hThread[0]);
 		CloseHandle(hThread[1]);
 
@@ -243,7 +240,7 @@ void initUI(RACE *ret) {
 			if( (test) )
 			{
 				decision=true;
-				ret->maxRounds=20;  
+				ret->maxRounds=2;  
 				ret->timeAttack_Active=true;
 			}
 		}
@@ -286,7 +283,7 @@ void initUI(RACE *ret) {
 			fflush(stdin);
 			fgets(rounds, 3, stdin);
 			timeInt = atoi(rounds);
-			if(timeInt>0 && timeInt<9)
+			if(timeInt>0 && timeInt<10)
 			{
 				printf("%d Minutes? (y/n)",timeInt);
 				test=confirm();
@@ -443,10 +440,10 @@ void getName(char name[20]) {
 
 		printf("\nWelcome to the BG Carrera Application \n");
 		printf("_____________________________________________\n\n\n");
-		printf("\nPlease insert the name\n\n");
+		printf("\nPlease insert the name (at max. 15 characters) \n\n");
 
 		fflush(stdin);
-		fgets(name, 20, stdin);  //Max length of name: 20 characters 
+		fgets(name, 15, stdin);  //Max length of name: 20 characters 
 
 		ln = strlen(name) - 1;
 		if (name[ln] == '\n') // if name is complete 
@@ -490,23 +487,47 @@ void buildTable (RACE *ret)
 
 DWORD WINAPI updateTime(LPVOID data)
 {
-	int i;
+	int i,j;
+	int rounds;
+	int lastround[4];
 
 	RACE *ret;
 	ret = (int) data;     // pointer is working fine, ignore warning
+
+	rounds = ret->maxRounds;
+	lastround[0] = 0;
+	lastround[1] = 0;
+	lastround[2] = 0;
+	lastround[3] = 0;
 
 	do{
 
 		for(i=0;i<ret->numberOfPlayers;i++)  
 		{
-			if(!ret->players[i].finished && ret->players[i].rounds>=0) //times are updated as long as the player has started and not finsished the game
+			if(rounds != ret->maxRounds && ret->timeAttack_Active)
+			{
+				gotoxy(0,rounds+3);  
+				for(j=0;j<150;j++)
+					printf(" ");
+				buildTable(ret);
+				rounds = ret->maxRounds;
+			}
+
+			if(ret->players[i].rounds != lastround[i] && ret->players[i].rounds>0)  //If new lap and player has already completet at least one lap
+			{
+				gotoxy(10+i*17,ret->players[i].rounds+2);  
+				printTime(ret,i,ret->players[i].rounds-1,false);  //Print old time one more time to make sure that the right value is printed
+				lastround[i]=ret->players[i].rounds;
+			}
+
+			if(!ret->players[i].finished && ret->players[i].rounds>=0 && ret->players[i].rounds<ret->maxRounds) //times are updated as long as the player has started and not finsished the game
 			{
 				gotoxy(10+i*17,ret->players[i].rounds+3);  
 				if(!(ret->players[i].rounds==-1))
-					printTime(ret,i,false);  //Print the time of the players current round
+					printTime(ret,i,ret->players[i].rounds,false);  //Print the time of the players current round
 
 				gotoxy(10+i*17,ret->maxRounds+4);
-				printTime(ret,i,true);  //Update overall time
+				printTime(ret,i,ret->players[i].rounds,true);  //Update overall time
 			}
 			if(ret->players[i].finished)  //If finished
 			{
@@ -519,18 +540,18 @@ DWORD WINAPI updateTime(LPVOID data)
 	return 0;
 }
 
-void printTime(RACE *ret, int player, bool total)
+void printTime(RACE *ret, int player, int round, bool total)
 {
 	int minuten, sekunden, millesekunden;
 
 		if(total)  // prints the overall time
 		{
-			millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds+1] - ret->startTime); //current time minus start time
+			millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->startTime); //current time minus start time
 			if(ret->players[player].finished)
 				millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds]- ret->startTime ); // round time minus the time of when the race started
 		}
 		else{	  //prints the current round time		
-			millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds+1] - ret->players[player].roundTime[ret->players[player].rounds]);  //current time minus the time of when the lap started
+			millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->players[player].roundTime[round]);  //current time minus the time of when the lap started
 		}
 	
 	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
@@ -538,7 +559,7 @@ void printTime(RACE *ret, int player, bool total)
 	minuten = sekunden / 60;
 	millesekunden = millesekunden - 1000*sekunden;	
 	sekunden = sekunden - 60*minuten;
-	printf("%02d:%02d:%03d\n",minuten,sekunden,millesekunden);  //print
+	printf("%02d:%02d.%03d\n",minuten,sekunden,millesekunden);  //print
 }
 
 DWORD WINAPI raceloop(LPVOID data) 
@@ -569,19 +590,16 @@ DWORD WINAPI raceloop(LPVOID data)
 					knockOut( ret);
 				if(ret->timeAttack_Active) 
 				{
-					nextRound(&ret->players[ret->playerLine],ret->startTime);
+					nextRound(&ret->players[ret->playerLine]);
 
-					/*   @TO-DO: This is important for a future implementation of a dynamic round cap, not yet working, especially with multithreading 
-					if(ret->players[ret->playerLine].rounds==ret->maxRounds-1)
+					//dynamic number of rounds for time attack
+					if(ret->players[ret->playerLine].rounds == ret->maxRounds-1)
 					{
-						//ret->maxRounds++;
-						//buildTable(ret);
+						ret->maxRounds++;
 					}
-					*/
+					
 				}
 			}
-
-			
 
 			if( (!ret->device.activeTrackSensor[k]) && ret->activeSensor[k])  //This is neccesarry to make sure that the player just gets one new round at a time
 				ret->activeSensor[k]=false;

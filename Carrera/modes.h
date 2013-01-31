@@ -118,7 +118,7 @@ returns 0
 
 */
 
-void printTime(RACE *ret, int player, bool total);
+void printTime(RACE *ret, int player, int round, bool total);
 /*
 
 The function is printing the time of the current round or for the total time for specific player
