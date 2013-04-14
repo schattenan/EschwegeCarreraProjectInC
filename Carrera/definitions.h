@@ -1,7 +1,7 @@
 //Lists of editable values
 
 
-#define BUILD "00027 - 2013/01/31"
+#define BUILD "00028 - 2013/04/14"
 #define SEPERATOR 44   // ASCI for ','   important for csv export 
 #define EXPORTPATH "C:\\rennbahn\\stats.csv"  // path to csv-file
 #define IMPORTPATH "start http://localhost/file2.php" // system command to open php file in webbrowser, Apache must be running

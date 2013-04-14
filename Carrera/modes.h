@@ -19,30 +19,44 @@ struct RACE{
 		int knockOutPlayerX[4]; 
 		int playerLine;
 		int numberOfPlayers;
-		bool activeSensor[4];      
+		bool activeSensor[4];   
+		int errorcode;
 };
 
 typedef struct RACE RACE;
 
 
-void initRACE(RACE *ret);
+int initRACE(RACE *ret);
 /*
 
 The function initiates a RACE struct and opens a tcp conncetion to the UE9
 
+return values
+	-2 - error, see function setPort
+	-1 - error, see function startConnectionUE9 
+	 0 - everything is working perfectly fine
+
 */
 
-void match (RACE *ret);
+int match (RACE *ret);
 /*
 
 The function is the logic for the Game Mode race, it checks for specific conditions 
 
+return values
+	-1 - error while setting a port
+	 0 - everything is working perfectly fine
+
 */
 
-void knockOut (RACE *ret);
+int knockOut (RACE *ret);
 /*
 
 The function is the logic for the Game Mode knockout, it checks for specific conditions 
+
+return values
+	-1 - error while setting a port
+	 0 - everything is working perfectly fine
 
 */
 
@@ -54,7 +68,7 @@ It sets the ranking for all players after the number of finished rounds
 
 */
 
-void run (RACE *ret);
+int run (RACE *ret);
 /*
 
 The function is the main function for a race.
@@ -63,7 +77,9 @@ afterwards this function starts the threads for
 	1)recieving and computing the race data
 	2)updating the UI
 
-afterwards 
+return values
+	-1 - error while setting a port
+	 0 - everything is working perfectly fine
 */
 
 void gotoxy(int x, int y);
@@ -138,10 +154,14 @@ returns 0
 
 */
 
-void countdown(RACE *ret);
+int countdown(RACE *ret);
 
 /*
 
 The function is starting the countdown for the race
+
+return values
+	-1 - error while setting a port
+	 0 - everything is working perfectly fine
 
 */

@@ -115,7 +115,7 @@ int openTCPConnection(char *ipAddress, int port)
 
   if((connect(socketFd,(struct sockaddr *)&address,sizeof(address))) < 0)
   {
-    fprintf(stderr,"Could not connect to %s:%d\n",inet_ntoa(address.sin_addr), port);
+    fprintf(stderr,"\nCould not connect to %s:%d\n",inet_ntoa(address.sin_addr), port);
     return -2;
   }
 

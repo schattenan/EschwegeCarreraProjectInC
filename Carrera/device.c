@@ -2,9 +2,13 @@
 
 
 
-void initDEVICE(DEVICE *ret) {
+int initDEVICE(DEVICE *ret) {
 	int i=0;
-	startConnectionUE9(&ret->ue9);
+
+	if( startConnectionUE9(&ret->ue9) != 0 )
+	{
+		return -1;
+	}
 
 	for(i=0;i<4;i++)
 	{
@@ -12,85 +16,117 @@ void initDEVICE(DEVICE *ret) {
 		ret->activeTrackSensor[i]=false;
 	}
 	ret->trafficLightStatus=4;
-	setLights(ret);
+	if(setLights(ret) != 0)
+		return -2;
 	setPower( ret,0,false );  
 	setPower( ret,1,false );  
 	setPower( ret,2,false );  
 	setPower( ret,3,false );  
 	
+	return 0;
 }
 
-void setLights( DEVICE *ret) {
+int setLights( DEVICE *ret) {
 
 	if(ret->trafficLightStatus==0) //First red LED
 	{
-		setPortUE9(&ret->ue9, 0, 1);
+		if( !(setPortUE9(&ret->ue9, 0, 1) == 0))
+			return -1;
 	}
 	if(ret->trafficLightStatus==1) //Second red LED
 	{
-		setPortUE9(&ret->ue9, 1, 1);
+		if( !(setPortUE9(&ret->ue9, 1, 1) == 0) )
+			return -1;
 	}
 	if(ret->trafficLightStatus==2) //Third red LED
 	{
-		setPortUE9(&ret->ue9, 2, 1);
+		if( !(setPortUE9(&ret->ue9, 2, 1) == 0) )
+			return -1;
 	}
 	if(ret->trafficLightStatus==3) //All red LED off, green LED on
 	{
-		setPortUE9(&ret->ue9,  0, 0);
-		setPortUE9(&ret->ue9,  1, 0);
-		setPortUE9(&ret->ue9,  2, 0);
-		setPortUE9(&ret->ue9,  3, 1);
+		if( !(setPortUE9(&ret->ue9,  0, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  1, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  2, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  3, 1) == 0) )
+			return -1;
 	}
 	if(ret->trafficLightStatus==4)   //ALL Lights OFF, it's getting dark
 	{
-		setPortUE9(&ret->ue9,  0, 0);
-		setPortUE9(&ret->ue9,  1, 0);
-		setPortUE9(&ret->ue9,  2, 0);
-		setPortUE9(&ret->ue9,  3, 0);
+		if( !(setPortUE9(&ret->ue9,  0, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  1, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  2, 0) == 0) )
+			return -1;
+		if( !(setPortUE9(&ret->ue9,  3, 0) == 0) )
+			return -1;
 	}
+	return 0;
 }
 
-void playerCrossesLine(DEVICE *ret, int track) {
+int playerCrossesLine(DEVICE *ret, int track) {
 
 	// --------- Check  Port for Digital High ---------
 	int i=-1;
-	getPortUE9(&ret->ue9,track+8,&i);  //Gets port
+	if ( !(getPortUE9(&ret->ue9,track+8,&i) == 0 ) )  //Gets port
+		return -1;
 
 	if(i>0)  //If active 
 		ret->activeTrackSensor[track]=true;	
 	else  //If inactive
 		ret->activeTrackSensor[track]=false;
+
+	return 0;
 }
 
-void setPower(DEVICE *ret, int track, bool energy ) {
+int setPower(DEVICE *ret, int track, bool energy ) {
 
 	if(energy)  //power track on
 	{
 		ret->activeTrack[track] = 1;
-		setPortUE9(&ret->ue9, (track+4+8), 1);  // see comments 
+		if( !(setPortUE9(&ret->ue9, (track+4+8), 1) == 0) )  // see comments 
+			return -1;
 	}
 	
 	if(!energy) //power track off
 	{
 		ret->activeTrack[track] = 0;
-		setPortUE9(&ret->ue9, (track+4+8), 0); // see comments 
+		if ( !(setPortUE9(&ret->ue9, (track+4+8), 0) ==0) ) // see comments 
+			return -1;
 	}
+	return 0;
 }
 
-void startConnectionUE9 (CONNECTION *ret) {
+int startConnectionUE9 (CONNECTION *ret) {
 
 	ret->ue9_port = DEFAULTPORT;
 
-	//Opening TCP connection to UE9
-	 if( !( (ret->socketFD = openTCPConnection(DEFAULTIP, ret->ue9_port)) < 0)) //retunrs true if succesfull, native UE9 
-			printf("Connected ");
+	printf("Trying to connect to UE9...");
 
-	 //Getting calibration information from UE9  (Necessary for communication)
-	 if(! (getCalibrationInfo(ret->socketFD, &ret->caliInfo) < 0))
-			printf("\nCalibrated \n");
+	//Opening TCP connection to UE9
+	 if( ( (ret->socketFD = openTCPConnection(DEFAULTIP, ret->ue9_port)) < 0)) //retunrs true if succesfull, native UE9 
+	 {
+			return -1;
+	 }
+	 else{
+		 //Getting calibration information from UE9  (Necessary for communication)
+		if( (getCalibrationInfo(ret->socketFD, &ret->caliInfo) < 0))
+		{
+				return -2;
+		}		
+		else{
+			return 0; //Everything perfect
+		}
+	 }
+	 
+	 
 }
 
-void setPortUE9(CONNECTION *ret, int portNumber, int value) {     
+int setPortUE9(CONNECTION *ret, int portNumber, int value) {     
 
 	/* 
 		0-7    FIO0-FIO7, 0-3	traffic lights 
@@ -100,12 +136,14 @@ void setPortUE9(CONNECTION *ret, int portNumber, int value) {
 		
 	*/
 
-	if((ret->error = eDO(ret->socketFD, portNumber, value)) != 0) // Reads port, return true if succesfull, native UE9 
-		printf("setPort unsuccesfull");
+	if((ret->error = eDO(ret->socketFD, portNumber, value)) != 0) // Reads port, return false if succesfull, native UE9 
+		return -1;
+	else
+		return 0;
 
 }
 
-void getPortUE9(CONNECTION *ret, int portNumber, int *value) {
+int getPortUE9(CONNECTION *ret, int portNumber, int *value) {
 	
 	
 	/* 
@@ -117,12 +155,15 @@ void getPortUE9(CONNECTION *ret, int portNumber, int *value) {
 	*/
 
 
-	if((ret->error = eDI(ret->socketFD, portNumber, &ret->lngState)) != 0)  // Set port, retunrs true if succesfull, native UE9 
+	if((ret->error = eDI(ret->socketFD, portNumber, &ret->lngState)) != 0)  // Set port, returns true if succesfull, native UE9 
+	{
 		printf("Could not read the state of Port %d", portNumber);
-
+		return -1;
+	}
+	else	
+		return 0;
 
 	*value = (int) ret->lngState;
-
 }
 
 void closeConnectionUE9 (CONNECTION *ret) {

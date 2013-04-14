@@ -1,7 +1,9 @@
 #include "modes.h"
         
-void initRACE  (RACE *ret) {
-         
+int initRACE  (RACE *ret) {
+     
+	int error;
+
               ret->finished=false;
               ret->started=false;
 			  ret->match_Active=false;
@@ -17,7 +19,14 @@ void initRACE  (RACE *ret) {
 			  ret->knockOutPlayerX[3]=0;
 			  ret->numberOfPlayers=0;
 			  ret->maxTime=999999999;
-              initDEVICE(& ret->device);
+			  ret->errorcode=0;
+
+			  error = initDEVICE(& ret->device);
+              if( error != 0) //Error
+			  {
+				return error;
+			  }
+
 			  ret->playerLine=12;
               initPLAYER(& ret->players[0]);
 			  initPLAYER(& ret->players[1]);
@@ -30,18 +39,18 @@ void initRACE  (RACE *ret) {
 			  strcpy(ret->players[2].playername,"PLAYER_3");
 			  strcpy(ret->players[3].playername,"PLAYER_4");
 
+			  return 0;
 }
 
-void match (RACE *ret) {
+int match (RACE *ret) {
 
 	nextRound(&ret->players[ret->playerLine]);  //sets new round
 
 
 	if(ret->players[ret->playerLine].rounds == ret->maxRounds)  //player has finished the race
 	{
-		setPower( &ret->device,(ret->playerLine),false );  //Power off player 
-
-
+		if (!(setPower( &ret->device,(ret->playerLine),false ) == 0) ) //Power off player 
+			return -1;
 
 		ret->knockOutPlayer++;  //one less player active
 		ret->players[ret->playerLine].finished=true;
@@ -55,9 +64,10 @@ void match (RACE *ret) {
 			ret->finished=true;   //race has ended
 		}
 	}
+	return 0;
 }
 
-void knockOut (RACE *ret) {   
+int knockOut (RACE *ret) {   
 
 	int i;
 
@@ -79,7 +89,9 @@ void knockOut (RACE *ret) {
 			for(i=ret->players[ret->playerLine].rounds;i<ret->maxRounds+1;i++) //all future rounds are going to be set (important for export)
 				ret->players[ret->playerLine].roundTime[i]= ret->players[ret->playerLine].endTime;
 
-			setPower( &ret->device,ret->playerLine,false );  //Turn of the player's track
+			if( !(setPower( &ret->device,ret->playerLine,false ) == 0) )  //Turn of the player's track
+				return -1;
+
 			ret->players[ret->playerLine].rank=ret->numberOfPlayers-ret->players[ret->playerLine].rounds+1; //Set rank, counting down from 4 to 1
 
 			if(ret->knockOutPlayer==ret->numberOfPlayers) //If all players have been knocked out, the game is finished
@@ -87,7 +99,7 @@ void knockOut (RACE *ret) {
 		}
 
 	}
-
+	return 0;
 }
 
 void placingTimeAttack(RACE *ret) {
@@ -127,33 +139,47 @@ void placingTimeAttack(RACE *ret) {
 	}
 }
 
-void run (RACE *ret) {
+int run (RACE *ret) {
 
 	HANDLE hThread[2];	
+	int i=0;
+	int error;
 
-	countdown(ret);  //countdown
+	if(!(countdown(ret)==0))  //countdown
+		return -1;
 
 	if(!ret->started)
 	{
 		printf("Countdown failed, get used to it");
 	}else{
 		//Set all tracks active
-		if(ret->numberOfPlayers>0){setPower( &ret->device,0,true ); ret->players[0].roundTime[0]=clock(); }
-		if(ret->numberOfPlayers>1){setPower( &ret->device,1,true ); ret->players[1].roundTime[0]=clock(); }
-		if(ret->numberOfPlayers>2){setPower( &ret->device,2,true ); ret->players[2].roundTime[0]=clock(); }
-		if(ret->numberOfPlayers>3){setPower( &ret->device,3,true ); ret->players[3].roundTime[0]=clock(); }
+		for(i=0;i<ret->numberOfPlayers;i++)
+		{
+			if( !(setPower(&ret->device,i,true)==0) )
+			{
+				printf("error while setting a port\n Please restart ");
+				return -1;
+			}				
+			ret->players[0].roundTime[i]=clock(); 
+		}
 		
 		hThread[0] = CreateThread(NULL,0, raceloop, ret, 0, NULL);  //Start first thread with function raceloop
 		hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL); //Start second thread with function updateTime
 
 		WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
-		
+
+
+
 		CloseHandle(hThread[0]);
 		CloseHandle(hThread[1]);
+
+		if( !(ret->errorcode==0))
+			return ret->errorcode;
 
 	}
 	printf("\n\n\nRace has been finished");
 	updateTime(ret);  //Last time update for ranking
+	return 0;
 }
 
 void gotoxy(int x, int y)
@@ -574,7 +600,8 @@ DWORD WINAPI raceloop(LPVOID data)
 		for(k=0; k < ret->numberOfPlayers ;k++)
 		{			
 			ret->players[k].roundTime[ret->players[k].rounds+1]=clock();
-			playerCrossesLine(& ret->device, k);  //checks if there are currently player crossing the start point
+			if(!(playerCrossesLine(& ret->device, k)==0)) //checks if there are currently player crossing the start point
+				goto ERROR1;
 				
 			if(ret->device.activeTrackSensor[k] && !ret->activeSensor[k] && !ret->players[k].finished) //if player is currently crossing the start
 			{     
@@ -585,9 +612,11 @@ DWORD WINAPI raceloop(LPVOID data)
 				 //Big issue if there are 2 active game modes
 
 				if(ret->match_Active)
-					match(ret);
+					if(!(match(ret) == 0) )
+						goto ERROR2;
 				if(ret->knockOut_Active)
-					knockOut( ret);
+					if(!(knockOut( ret) == 0) )
+						goto ERROR3;
 				if(ret->timeAttack_Active) 
 				{
 					nextRound(&ret->players[ret->playerLine]);
@@ -611,7 +640,9 @@ DWORD WINAPI raceloop(LPVOID data)
 
 				for(i=0;i<ret->numberOfPlayers;i++)
 				{
-					setPower( &ret->device,i,false );  //Turn off all tracks
+					if(!(setPower( &ret->device,i,false ) == 0) ) //Turn off all tracks
+						goto ERROR4;
+
 					ret->players[i].finished=true;   
 					ret->players[i].endTime=clock();
 					for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  //Sets all rounds to endTime (important for export)
@@ -620,14 +651,45 @@ DWORD WINAPI raceloop(LPVOID data)
 				
 				placingTimeAttack(ret);  //Afterwards setting the ranks
 			}
-			//updateTime(ret);  //Updateting the UI
 		}
 	}while( !(ret->finished) ); //As long as the game is running
 
 	return 0;
+
+// Errorcodes
+
+ERROR1:  // player crosses line problem
+	gotoxy(5,5);
+	printf("\n error while getting port status\n Please restart ");
+	ret->finished=true;
+	ret->errorcode=-1;
+	return -1;
+ERROR2:  // match problem
+	gotoxy(5,5);
+	printf("error while setting a port\n Please restart ");
+	ret->finished=true;
+	ret->errorcode=-2;
+	return -2;
+ERROR3:  // knock out problem
+	gotoxy(5,5);
+	printf("error while setting a port\n Please restart ");
+	ret->finished=true;
+	ret->errorcode=-3;
+	return -3;
+ERROR4:  // setPower problem
+	gotoxy(5,5);
+	printf("error while setting a port\n Please restart ");
+	ret->finished=true;
+	ret->errorcode=-4;
+	return -4;
+ERROR5: // placeholder 
+	gotoxy(5,5);
+	printf("Placeholder\n Please restart ");
+	ret->finished=true;
+	return -5;
 }
 
-void countdown(RACE *ret) {
+int countdown(RACE *ret) {
 
 	int i=0;
 	clock_t timer1;
@@ -642,10 +704,15 @@ void countdown(RACE *ret) {
 			timer1=clock();  //Reset CurrentTime
 			ret->device.trafficLightStatus=i;  //set current status
 
-			setLights(& ret->device);  //Setting the LEDs of the traffic lights
+			if( !(setLights(& ret->device)==0) )  //Setting the LEDs of the traffic lights
+			{
+				printf("error while setting a port\n Please restart ");
+				return -1;
+			}
 			i++;
 			if(i==3)  //after 3 seconds the game has officially started
 				ret->started=true;
 		}
 	}
+	return 0;
 }
