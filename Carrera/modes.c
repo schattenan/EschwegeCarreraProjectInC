@@ -148,10 +148,6 @@ int run (RACE *ret) {
 	if(!(countdown(ret)==0))  //countdown
 		return -1;
 
-	if(!ret->started)
-	{
-		printf("Countdown failed, get used to it");
-	}else{
 		//Set all tracks active
 		for(i=0;i<ret->numberOfPlayers;i++)
 		{
@@ -168,15 +164,12 @@ int run (RACE *ret) {
 
 		WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
 
-
-
 		CloseHandle(hThread[0]);
 		CloseHandle(hThread[1]);
 
 		if( !(ret->errorcode==0))
 			return ret->errorcode;
 
-	}
 	printf("\n\n\nRace has been finished");
 	updateTime(ret);  //Last time update for ranking
 	return 0;
@@ -291,8 +284,10 @@ void initUI(RACE *ret) {
 				printf("%d Rounds? (y/n)",ret->maxRounds);
 				test=confirm();
 			}
-			else
+			else {
 				printf("\nYou have choosen %d. Please insert a valid number (1-99)",ret->maxRounds);
+				a=getch();
+			}
 	
 		}while(!test);
 	}
@@ -316,9 +311,11 @@ void initUI(RACE *ret) {
 				ret->maxTime = timeInt*60*CLOCKS_PER_SEC;
 
 			}
-			else
+			else {
 				printf("\nYou have choosen %d. Please insert a valid number (1-9)",ret->maxRounds);
-	
+				a=getch();
+			}
+
 		}while(!test);
 	}
 
@@ -469,10 +466,10 @@ void getName(char name[20]) {
 		printf("\nPlease insert the name (at max. 15 characters) \n\n");
 
 		fflush(stdin);
-		fgets(name, 15, stdin);  //Max length of name: 20 characters 
+		fgets(name, 15, stdin);  //Max length of name: 15 characters 
 
 		ln = strlen(name) - 1;
-		if (name[ln] == '\n') // if name is complete 
+		//if (name[ln] == '\n') // if name is complete 
 			name[ln] = '\0';  // sign of a finished string
 		printf("Your name is '%s' ",name);
 
@@ -535,7 +532,13 @@ DWORD WINAPI updateTime(LPVOID data)
 				gotoxy(0,rounds+3);  
 				for(j=0;j<150;j++)
 					printf(" ");
-				buildTable(ret);
+				gotoxy(0,rounds+3);
+				printf("--------I----------------I----------------I----------------I-----------------");
+				gotoxy(0,rounds+4);
+				printf("Total   I                I                I                I\n");
+				gotoxy(0,rounds+5);
+				printf("Place   I                I                I                I\n");
+
 				rounds = ret->maxRounds;
 			}
 
@@ -596,7 +599,6 @@ DWORD WINAPI raceloop(LPVOID data)
 	ret = (int) data;     // pointer is working fine, ignore warning
 
 	do{
-
 		for(k=0; k < ret->numberOfPlayers ;k++)
 		{			
 			ret->players[k].roundTime[ret->players[k].rounds+1]=clock();
@@ -622,7 +624,7 @@ DWORD WINAPI raceloop(LPVOID data)
 					nextRound(&ret->players[ret->playerLine]);
 
 					//dynamic number of rounds for time attack
-					if(ret->players[ret->playerLine].rounds == ret->maxRounds-1)
+					if(ret->players[ret->playerLine].rounds >= ret->maxRounds-1)
 					{
 						ret->maxRounds++;
 					}

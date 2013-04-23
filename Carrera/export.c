@@ -20,7 +20,7 @@ End signal
 void exportCSV(RACE *ret)
 {
 	FILE *datei;
-	int i,j;
+	int i,j,roundStart,roundEnd;
 
 	if( (datei = fopen(EXPORTPATH,"w")) == NULL )
 	{
@@ -44,7 +44,8 @@ void exportCSV(RACE *ret)
 	fprintf(datei,"\n");
 
 	//  ==  Number of the max. Rounds ==
-	fprintf(datei,"%d",ret->maxRounds);
+	if(ret->timeAttack_Active) fprintf(datei,"%d",ret->maxRounds-1);
+	if(!ret->timeAttack_Active)fprintf(datei,"%d",ret->maxRounds);
 	fprintf(datei,"\n");
 
 
@@ -57,8 +58,18 @@ void exportCSV(RACE *ret)
 	}
 	fprintf(datei,"\n");
 
+	
+	if(ret->timeAttack_Active){
+		roundStart=0;
+		roundEnd=ret->maxRounds-1;
+	}else {
+		roundStart=1;
+		roundEnd=ret->maxRounds+1;
+
+	}
+
 	//  ==  Round time for each player for each round ==
-	for(i=0;i<ret->maxRounds;i++)
+	for(i=roundStart;i<roundEnd;i++)
 	{
 		for(j=0;j<ret->numberOfPlayers;j++)
 		{
@@ -81,7 +92,8 @@ void exportCSV(RACE *ret)
 	//  ==  Best Round (TBD)  ==
 	for(i=0;i<ret->numberOfPlayers;i++)
 	{
-		fprintf(datei,"%d",ret->players[i].bestRound);
+		if(ret->timeAttack_Active) fprintf(datei,"%d",ret->players[i].bestRound-1);
+		else fprintf(datei,"%d",ret->players[i].bestRound);
 		if(i<ret->numberOfPlayers-1)
 			fprintf(datei,"%c",SEPERATOR);
 	}

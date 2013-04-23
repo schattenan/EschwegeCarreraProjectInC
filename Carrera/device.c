@@ -1,7 +1,5 @@
 #include "device.h"
 
-
-
 int initDEVICE(DEVICE *ret) {
 	int i=0;
 
@@ -18,10 +16,14 @@ int initDEVICE(DEVICE *ret) {
 	ret->trafficLightStatus=4;
 	if(setLights(ret) != 0)
 		return -2;
-	setPower( ret,0,false );  
-	setPower( ret,1,false );  
-	setPower( ret,2,false );  
-	setPower( ret,3,false );  
+	if( setPower( ret,0,false) !=0)
+		return -2;
+	if( setPower( ret,1,false) !=0)
+		return -2;
+	if( setPower( ret,2,false) !=0)
+		return -2;
+	if( setPower( ret,3,false) !=0)
+		return -2;
 	
 	return 0;
 }
@@ -155,15 +157,17 @@ int getPortUE9(CONNECTION *ret, int portNumber, int *value) {
 	*/
 
 
-	if((ret->error = eDI(ret->socketFD, portNumber, &ret->lngState)) != 0)  // Set port, returns true if succesfull, native UE9 
+	if((ret->error = eDI(ret->socketFD, portNumber, &ret->lngState)) != 0)  // Get port, returns true if succesfull, native UE9 
 	{
 		printf("Could not read the state of Port %d", portNumber);
 		return -1;
 	}
 	else	
+	{
+		*value = (int) ret->lngState;
 		return 0;
+	}
 
-	*value = (int) ret->lngState;
 }
 
 void closeConnectionUE9 (CONNECTION *ret) {
