@@ -2,11 +2,9 @@
 
 ## 1. Links ##
 
-[Quellcode der Rennsoftware](https://github.com/schattenan/EschwegeCarreraProjectInC)
-
-[Alte Dokumentation (2012)](http://swege.github.io/Carrera/index.html)
-
-[Neue Dokumentation (2013)]()
+* [Quellcode der Rennsoftware](https://github.com/schattenan/EschwegeCarreraProjectInC)
+* [Alte Dokumentation (2011 - 2012)](http://swege.github.io/Carrera/index.html)
+* [Neue Dokumentation (2012 - 2013)]()
 
 
 ## 2. Spezifikation der UE9-Ports ##
@@ -14,7 +12,7 @@
 ![](http://swege.github.io/Carrera/_images/UE9_Ports.png)
 
 | Funktion | Portnummer (physikalisch)| Portnummer Software| 
-| :-----:  | :-------:	| :---: | 
+| :-----:	| :-------:	| :---: | 
 | *Ampel*              |||  
 | Rot 1 | FIO1          | 0 | 
 | Rot 2 | FIO2          | 1 |
@@ -34,10 +32,11 @@
 | Track 4 | EIO7 | 15 |
 
 
-## 3. Spezifikationen des UE9-Boards ##
+## 3. Spezifikationen des UE9-Boards & Software##
 
-* IP-Adresse: 192.168.1.207
-* Port : 52360
+* IP-Adresse: 192.168.1.207 (Verändert)
+* Port: 52360 (Default)
+* Path: C://rennbahn/
 
 ## 4. Spezifikation der CSV-Datei ##
 
