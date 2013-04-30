@@ -4,7 +4,7 @@
 
 * [Quellcode der Rennsoftware](https://github.com/schattenan/EschwegeCarreraProjectInC)
 * [Alte Dokumentation (2011 - 2012)](http://swege.github.io/Carrera/index.html)
-* [Neue Dokumentation (2012 - 2013)]()
+* [Neue Dokumentation (2012 - 2013)](https://github.com/schattenan/EschwegeCarreraProjectInC/blob/master/Technologie.pdf)
 
 
 ## 2. Spezifikation der UE9-Ports ##
@@ -77,7 +77,7 @@
 
 * Windows XP
 * XAMP (für die Urkunde)
-* Opera (für den Druck der Urkunde)
+* Firefox (für den Druck der Urkunde)
 
 ### 5.4 Erstellung der Doku ###
 
