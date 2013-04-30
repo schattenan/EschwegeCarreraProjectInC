@@ -67,6 +67,15 @@ energy -
 		1) if true it turns the power on
 		2) if false it turns the power off
 
+portnumber:
+		0-7    FIO0-FIO7
+		8-15   EIO0-EIO7
+		
+		0-3	traffic lights
+		8-11	Sensors 
+		12-15	tracks 
+		
+
 return value
 	 0 - everything is working perfectly
 	-1 - error, see function setPort
@@ -91,6 +100,14 @@ int setPortUE9(CONNECTION *ret, int portNumber, int value);
 The function sets one port of the UE9
 portNumber - Number of the specific port
 value - 1 for on, 0 for off
+
+portnumber:
+		0-7    FIO0-FIO7
+		8-15   EIO0-EIO7
+		
+		0-3	traffic lights
+		8-11	Sensors 
+		12-15	tracks 
 
 return value
 	-1 - error while setting a port

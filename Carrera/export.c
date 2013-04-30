@@ -44,7 +44,7 @@ void exportCSV(RACE *ret)
 	fprintf(datei,"\n");
 
 	//  ==  Number of the max. Rounds ==
-	if(ret->timeAttack_Active) fprintf(datei,"%d",ret->maxRounds-1);
+	if(ret->timeAttack_Active) fprintf(datei,"%d",ret->maxRounds-2);
 	if(!ret->timeAttack_Active)fprintf(datei,"%d",ret->maxRounds);
 	fprintf(datei,"\n");
 
@@ -60,7 +60,7 @@ void exportCSV(RACE *ret)
 
 	
 	if(ret->timeAttack_Active){
-		roundStart=0;
+		roundStart=1;
 		roundEnd=ret->maxRounds-1;
 	}else {
 		roundStart=1;
@@ -121,19 +121,27 @@ void exportTime(FILE *datei, RACE *ret, int player, int round)
 {
 	int minuten,sekunden,millesekunden;
 
-	//Getting the time, very similar to function printTime in modes.c
-	if(round==0)
-		millesekunden = ret->players[player].roundTime[0]-ret->startTime;
+	if( (round > ret->players[player].rounds)  )
+		fprintf(datei," ");
 	else
-		millesekunden = ret->players[player].roundTime[round]-ret->players[player].roundTime[round-1];
+		if (ret->timeAttack_Active && (round > ret->players[player].rounds-1))
+			fprintf(datei," ");
+		else {
 
-	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
-	sekunden = millesekunden / 1000;
-	minuten = sekunden / 60;
-	millesekunden = millesekunden - 1000*sekunden;	
-	sekunden = sekunden - 60*minuten;
+			//Getting the time, very similar to function printTime in modes.c
+			if(round==0)
+				millesekunden = ret->players[player].roundTime[0]-ret->startTime;
+			else
+				millesekunden = ret->players[player].roundTime[round]-ret->players[player].roundTime[round-1];
 
-	fprintf(datei,"%02d:%02d.%03d",minuten,sekunden,millesekunden);
+			//Some crazy math nobody understands so don't even try, you will fail anyway ;-)
+			sekunden = millesekunden / 1000;
+			minuten = sekunden / 60;
+			millesekunden = millesekunden - 1000*sekunden;	
+			sekunden = sekunden - 60*minuten;
+
+			fprintf(datei,"%02d:%02d.%03d",minuten,sekunden,millesekunden);
+		}
 }
 
 void exportTotalTime(FILE *datei, RACE *ret, int player)
@@ -143,7 +151,7 @@ void exportTotalTime(FILE *datei, RACE *ret, int player)
 	//Getting the total time, very similar to function exportTime
 	millesekunden = ret->players[player].endTime-ret->startTime;
 
-	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
+	//Some crazy math nobody understands so don't even try, you will fail anyway ;-)
 	sekunden = millesekunden / 1000;
 	minuten = sekunden / 60;
 	millesekunden = millesekunden - 1000*sekunden;	

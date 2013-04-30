@@ -1,0 +1,40 @@
+body {
+	font-family:Arial;
+	margin:0px;
+	padding:0px;
+}
+h1 {
+	font-size:14px;
+	margin:0px;
+	font-family:Arial;
+}
+h2 {
+	font-size:64px;
+	margin:0px;
+	font-family:Arial;
+}
+
+table {
+	border:2px solid #F2591F;
+	border-collapse:collapse;
+	width:100%;
+}
+tr.a {
+	border:0px solid #F2591F;
+	background-color:white;
+}
+tr.b {
+	border:0px solid #F2591F;
+	background-color:#EDCABD;
+}
+td {
+	padding:8px 0px 8px 0px;
+	font-size:20px;
+}
+th {
+	background-color:#F2591F;
+	color:white;
+	padding:5px;
+	font-size:20px;
+	font-family:Arial Narrow
+}

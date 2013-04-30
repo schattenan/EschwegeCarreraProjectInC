@@ -7,7 +7,7 @@ int main() {
 	char f;
 	RACE objectRace;
 	
-	printf("Build : %s \n\n",BUILD);
+	printf("Build : %s \n\n%c",BUILD);
 
 	if( initRACE(&objectRace) == 0)
 	{
@@ -24,6 +24,5 @@ int main() {
 	}
 
 	f = getch();
-	return 0;
-	
-}
+	return 0;	
+} 

@@ -103,12 +103,12 @@ class CSVParser
         </tr>
             <?php for($i=0;$i < $test->getNumberOfRounds() && $i< MAXROUNDS ; $i++) 
                 { 
-                    echo '<tr class="'; if($i % 2 == 0) { echo "a"; } else { echo "b"; } echo "\"> <td> Runde " . ($i+1) . "</td>";
+                    echo '<tr class="'; if($i % 2 == 0) { echo "a"; } else { echo "b"; } echo "\"> <td style=\"padding-left:5px;\"> Runde " . ($i+1) . "</td>";
                     for($j=0;$j < $test->getNumberOfPlayers() ; $j++) 
                     {
                         echo "<td  align='center'>" . $test->getRoundTime($i,$j) . "</td>" ;
                     }
-                    echo "</tr>";
+                    echo "</tr>\n";
                 }
             ?>
         <tr style="border-bottom:2px solid #F2591F;">
@@ -118,20 +118,20 @@ class CSVParser
         </tr>
     
         <tr class="b">
-         <td>Beste Rundenzeit</td>
-            <?php for($i=0;$i < $test->getNumberOfPlayers() ; $i++) { echo "<td  align='center'>" . $test->getRoundTime($test->getBestRound($i),$i) . "</td>"; } ?>
+         <td style="padding-left:5px; min-width:160px;">Beste Rundenzeit</td>
+            <?php for($i=0;$i < $test->getNumberOfPlayers() ; $i++) { echo "<td  align='center'>" . $test->getRoundTime($test->getBestRound($i)-1,$i) . "</td>"; } ?>
             
         </tr>
         
         <tr class="a">
-         <td >Gesamtzeit</td>
+         <td style="padding-left:5px;">Gesamtzeit</td>
             <?php for($i=0;$i < $test->getNumberOfPlayers() ; $i++) { echo "<td  align='center'>" . $test->getTotalTime($i) . "</td>"; } ?>
     
         </tr>
         
         <tr class="b" style="font-weight:bold;">
-         <td>Platzierung</td>
-            <?php for($i=0;$i < $test->getNumberOfPlayers() ; $i++) { echo "<td  align='center'>" . $test->getRank($i) . ". </td>"; } ?>
+         <td style="padding-left:5px;">Platzierung</td>
+            <?php for($i=0;$i < $test->getNumberOfPlayers() ; $i++) { echo "<td style=\"font-size:28px;\"  align='center'>" . $test->getRank($i) . ". </td>"; } ?>
             
         </tr>
         
@@ -139,8 +139,10 @@ class CSVParser
     </table>
     
     <?php
-    echo '<div style="margin:0px auto; width:400px; text-align:center; border-bottom:1px solid #F2591F; padding:5px; margin-top:20px;"> Urkunde wurde generiert am ' . date('d.m.Y') . ' um ' . date('H:i') . '</div>';
+    echo '<div style="margin:0px auto; width:600px; text-align:center; border-bottom:1px solid #F2591F; padding:5px; margin-top:30px; font-size:20px;"> Urkunde wurde generiert am ' . date('d.m.Y') . ' um ' . date('H:i') . '</div>';
     ?>
+	
+	<div style="text-align:center;">Ein Projekt des Abiturjahrgangs 2013 des Beruflichen Gymnasiums Eschwege</div>
     
     
     

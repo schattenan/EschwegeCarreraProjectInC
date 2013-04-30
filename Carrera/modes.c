@@ -170,8 +170,7 @@ int run (RACE *ret) {
 		if( !(ret->errorcode==0))
 			return ret->errorcode;
 
-	printf("\n\n\nRace has been finished");
-	updateTime(ret);  //Last time update for ranking
+	printf("\n\n\nRace has been finished %c",7);
 	return 0;
 }
 
@@ -246,8 +245,7 @@ void initUI(RACE *ret) {
 			test=confirm();
 			if( (test) )
 			{
-				decision=true;
-				ret->maxRounds=4;  
+				decision=true;  
 				ret->knockOut_Active=true;
 			}
 				
@@ -338,6 +336,8 @@ void initUI(RACE *ret) {
 			test=confirm();
 			if( (test) )
 				decision=true;
+			if(ret->knockOut_Active)
+				ret->maxRounds=1;
 		}
 		if(a==50 ||  a==34)
 		{
@@ -346,6 +346,8 @@ void initUI(RACE *ret) {
 			test=confirm();
 			if( (test) )
 				decision=true;
+			if(ret->knockOut_Active)
+				ret->maxRounds=2;
 		}
 		if(a==51 ||  a==35 ||  a==-11)
 		{
@@ -354,6 +356,8 @@ void initUI(RACE *ret) {
 			test=confirm();
 			if( (test) )
 				decision=true;
+			if(ret->knockOut_Active)
+				ret->maxRounds=3;
 		}
 		if(a==52 ||  a==36)
 		{
@@ -362,6 +366,8 @@ void initUI(RACE *ret) {
 			test=confirm();
 			if( (test) )
 				decision=true;
+			if(ret->knockOut_Active)
+				ret->maxRounds=4;
 		}
 
 	}while(!decision);
@@ -463,10 +469,10 @@ void getName(char name[20]) {
 
 		printf("\nWelcome to the BG Carrera Application \n");
 		printf("_____________________________________________\n\n\n");
-		printf("\nPlease insert the name (at max. 15 characters) \n\n");
+		printf("\nPlease insert the name (at max. 10 characters) \n\n");
 
 		fflush(stdin);
-		fgets(name, 15, stdin);  //Max length of name: 15 characters 
+		fgets(name, 10, stdin);  //Max length of name: 10 characters 
 
 		ln = strlen(name) - 1;
 		//if (name[ln] == '\n') // if name is complete 
@@ -527,19 +533,21 @@ DWORD WINAPI updateTime(LPVOID data)
 
 		for(i=0;i<ret->numberOfPlayers;i++)  
 		{
-			if(rounds != ret->maxRounds && ret->timeAttack_Active)
+			if( (rounds != ret->maxRounds) && ret->timeAttack_Active)
 			{
-				gotoxy(0,rounds+3);  
-				for(j=0;j<150;j++)
+				gotoxy(0,rounds+3);
+				for(j=0;j<280;j++)
 					printf(" ");
 				gotoxy(0,rounds+3);
-				printf("--------I----------------I----------------I----------------I-----------------");
+					printf("Lap %02d  I                I                I                I\n",rounds+1);
 				gotoxy(0,rounds+4);
-				printf("Total   I                I                I                I\n");
+				printf("--------I----------------I----------------I----------------I-----------------");
 				gotoxy(0,rounds+5);
-				printf("Place   I                I                I                I\n");
+				printf("Total   I                I                I                I\n");		
+				gotoxy(0,rounds+6);			
+				printf("Place   I                I                I                I\n");	
 
-				rounds = ret->maxRounds;
+				rounds++;
 			}
 
 			if(ret->players[i].rounds != lastround[i] && ret->players[i].rounds>0)  //If new lap and player has already completet at least one lap
@@ -555,7 +563,7 @@ DWORD WINAPI updateTime(LPVOID data)
 				if(!(ret->players[i].rounds==-1))
 					printTime(ret,i,ret->players[i].rounds,false);  //Print the time of the players current round
 
-				gotoxy(10+i*17,ret->maxRounds+4);
+				gotoxy(10+i*17,rounds+4);
 				printTime(ret,i,ret->players[i].rounds,true);  //Update overall time
 			}
 			if(ret->players[i].finished)  //If finished
@@ -642,6 +650,9 @@ DWORD WINAPI raceloop(LPVOID data)
 
 				for(i=0;i<ret->numberOfPlayers;i++)
 				{
+					if(ret->players[i].rounds<0)
+						nextRound(&ret->players[i]);
+
 					if(!(setPower( &ret->device,i,false ) == 0) ) //Turn off all tracks
 						goto ERROR4;
 

@@ -21,7 +21,6 @@ void nextRound(PLAYER *start) {
 
 	// --------- Setting dedicated lap times ---------
 	int i=0;
-	clock_t timer1;
 
 	//This is due how it works, at the beginning, before the game starts, every player has a round count of -1
 	if(start->rounds>-1)  //if player is crossing the line
@@ -34,10 +33,13 @@ void nextRound(PLAYER *start) {
 			start->roundTime[start->rounds+1]=clock();  //Important for export
 
 			
-			// --------- Checking for best laps---------   // @TODO: right now this solution is not perfect
-
-			if( (start->roundTime[start->bestRound]- start->roundTime[start->bestRound-1]) > ( start->roundTime[start->rounds]- start->roundTime[start->rounds] ) )
+			// --------- Checking for best laps---------   // @TODO: right now this solution does not work
+			if(start->rounds>0)
+				if( (start->roundTime[start->bestRound]- start->roundTime[start->bestRound-1]) < ( start->roundTime[start->rounds]- start->roundTime[start->rounds-1] ) )
 					start->bestRound=start->rounds;
+				else {}
+			else
+				start->bestRound=1;
 		}
 
 		else
