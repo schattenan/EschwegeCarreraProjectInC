@@ -7,7 +7,7 @@ int main() {
 	char f;
 	RACE objectRace;
 	
-	printf("Build : %s \n\n%c",BUILD);
+	printf("Build : %s \n\n",BUILD);
 
 	if( initRACE(&objectRace) == 0)
 	{

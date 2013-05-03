@@ -35,8 +35,11 @@ void nextRound(PLAYER *start) {
 			
 			// --------- Checking for best laps---------   // @TODO: right now this solution does not work
 			if(start->rounds>0)
-				if( (start->roundTime[start->bestRound]- start->roundTime[start->bestRound-1]) < ( start->roundTime[start->rounds]- start->roundTime[start->rounds-1] ) )
-					start->bestRound=start->rounds;
+				if( (start->roundTime[start->bestRound]- start->roundTime[start->bestRound-1]) > (start->roundTime[start->rounds]- start->roundTime[start->rounds-1]) && !start->finished)
+				{
+						start->bestRound=start->rounds;
+						printf("%c",7);
+				}
 				else {}
 			else
 				start->bestRound=1;

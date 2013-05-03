@@ -44,7 +44,7 @@ void exportCSV(RACE *ret)
 	fprintf(datei,"\n");
 
 	//  ==  Number of the max. Rounds ==
-	if(ret->timeAttack_Active) fprintf(datei,"%d",ret->maxRounds-2);
+	if(ret->timeAttack_Active) fprintf(datei,"%d",ret->maxRounds-1);
 	if(!ret->timeAttack_Active)fprintf(datei,"%d",ret->maxRounds);
 	fprintf(datei,"\n");
 
@@ -61,7 +61,7 @@ void exportCSV(RACE *ret)
 	
 	if(ret->timeAttack_Active){
 		roundStart=1;
-		roundEnd=ret->maxRounds-1;
+		roundEnd=ret->maxRounds;
 	}else {
 		roundStart=1;
 		roundEnd=ret->maxRounds+1;
@@ -92,7 +92,7 @@ void exportCSV(RACE *ret)
 	//  ==  Best Round (TBD)  ==
 	for(i=0;i<ret->numberOfPlayers;i++)
 	{
-		if(ret->timeAttack_Active) fprintf(datei,"%d",ret->players[i].bestRound-1);
+		if(ret->timeAttack_Active) fprintf(datei,"%d",ret->players[i].bestRound);
 		else fprintf(datei,"%d",ret->players[i].bestRound);
 		if(i<ret->numberOfPlayers-1)
 			fprintf(datei,"%c",SEPERATOR);
@@ -123,11 +123,13 @@ void exportTime(FILE *datei, RACE *ret, int player, int round)
 
 	if( (round > ret->players[player].rounds)  )
 		fprintf(datei," ");
-	else
-		if (ret->timeAttack_Active && (round > ret->players[player].rounds-1))
+	else{
+		if(round > (ret->players[player].rounds-1) && ret->timeAttack_Active)
+		{
 			fprintf(datei," ");
-		else {
-
+		}
+		else
+		{
 			//Getting the time, very similar to function printTime in modes.c
 			if(round==0)
 				millesekunden = ret->players[player].roundTime[0]-ret->startTime;
@@ -142,6 +144,7 @@ void exportTime(FILE *datei, RACE *ret, int player, int round)
 
 			fprintf(datei,"%02d:%02d.%03d",minuten,sekunden,millesekunden);
 		}
+	}
 }
 
 void exportTotalTime(FILE *datei, RACE *ret, int player)

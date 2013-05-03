@@ -1,45 +1,45 @@
 #include "modes.h"
-        
+
 int initRACE  (RACE *ret) {
-     
+
 	int error;
 
-              ret->finished=false;
-              ret->started=false;
-			  ret->match_Active=false;
-			  ret->knockOut_Active=false;
-			  ret->timeAttack_Active=false;
-			  ret->activeSensor[0]=false;
-			  ret->activeSensor[1]=false;
-			  ret->activeSensor[2]=false;
-			  ret->activeSensor[3]=false;
-			  ret->knockOutPlayerX[0]=0;
-			  ret->knockOutPlayerX[1]=0;
-			  ret->knockOutPlayerX[2]=0;
-			  ret->knockOutPlayerX[3]=0;
-			  ret->numberOfPlayers=0;
-			  ret->maxTime=999999999;
-			  ret->errorcode=0;
+	ret->finished=false;
+	ret->started=false;
+	ret->match_Active=false;
+	ret->knockOut_Active=false;
+	ret->timeAttack_Active=false;
+	ret->activeSensor[0]=false;
+	ret->activeSensor[1]=false;
+	ret->activeSensor[2]=false;
+	ret->activeSensor[3]=false;
+	ret->knockOutPlayerX[0]=0;
+	ret->knockOutPlayerX[1]=0;
+	ret->knockOutPlayerX[2]=0;
+	ret->knockOutPlayerX[3]=0;
+	ret->numberOfPlayers=0;
+	ret->maxTime=999999999;
+	ret->errorcode=0;
 
-			  error = initDEVICE(& ret->device);
-              if( error != 0) //Error
-			  {
-				return error;
-			  }
+	error = initDEVICE(& ret->device);
+	if( error != 0) //Error
+	{
+		return error;
+	}
 
-			  ret->playerLine=12;
-              initPLAYER(& ret->players[0]);
-			  initPLAYER(& ret->players[1]);
-			  initPLAYER(& ret->players[2]);
-			  initPLAYER(& ret->players[3]);
-			  ret->knockOutPlayer=0;
+	ret->playerLine=12;
+	initPLAYER(& ret->players[0]);
+	initPLAYER(& ret->players[1]);
+	initPLAYER(& ret->players[2]);
+	initPLAYER(& ret->players[3]);
+	ret->knockOutPlayer=0;
 
-			  strcpy(ret->players[0].playername,"PLAYER_1");
-			  strcpy(ret->players[1].playername,"PLAYER_2");
-			  strcpy(ret->players[2].playername,"PLAYER_3");
-			  strcpy(ret->players[3].playername,"PLAYER_4");
+	strcpy(ret->players[0].playername,"PLAYER_1");
+	strcpy(ret->players[1].playername,"PLAYER_2");
+	strcpy(ret->players[2].playername,"PLAYER_3");
+	strcpy(ret->players[3].playername,"PLAYER_4");
 
-			  return 0;
+	return 0;
 }
 
 int match (RACE *ret) {
@@ -57,7 +57,7 @@ int match (RACE *ret) {
 		ret->players[ret->playerLine].endTime=clock();
 		ret->players[ret->playerLine].rank = ret->knockOutPlayer;  //ranking, count up 1-4
 
-		 // -------------------  Checks all players  -------------------------- \\ 
+		// -------------------  Checks all players  -------------------------- \\ 
 
 		if(ret->knockOutPlayer==ret->numberOfPlayers) //If all player have finished, the race has ended
 		{
@@ -113,8 +113,6 @@ void placingTimeAttack(RACE *ret) {
 	//This is a generic sort feature, Part 1 
 	for(i=0;i<ret->numberOfPlayers;i++) 
 	{
-		for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  // sets all missing lap times to endTime (important for export)
-			ret->players[ret->playerLine].roundTime[j]=clock();
 		//n*n
 		for(j=0;j<ret->numberOfPlayers;j++)
 		{
@@ -148,27 +146,28 @@ int run (RACE *ret) {
 	if(!(countdown(ret)==0))  //countdown
 		return -1;
 
-		//Set all tracks active
-		for(i=0;i<ret->numberOfPlayers;i++)
+	//Set all tracks active
+	for(i=0;i<ret->numberOfPlayers;i++)
+	{
+		if( !(setPower(&ret->device,i,true)==0) )
 		{
-			if( !(setPower(&ret->device,i,true)==0) )
-			{
-				printf("error while setting a port\n Please restart ");
-				return -1;
-			}				
-			ret->players[0].roundTime[i]=clock(); 
-		}
-		
-		hThread[0] = CreateThread(NULL,0, raceloop, ret, 0, NULL);  //Start first thread with function raceloop
-		hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL); //Start second thread with function updateTime
+			printf("error while setting a port\n Please restart ");
+			return -1;
+		}				
+		ret->players[0].roundTime[i]=clock(); 
+	}
+	printf("%c",7);
 
-		WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
+	hThread[0] = CreateThread(NULL,0, raceloop, ret, 0, NULL);  //Start first thread with function raceloop
+	hThread[1] = CreateThread(NULL,0, updateTime, ret, 0, NULL); //Start second thread with function updateTime
 
-		CloseHandle(hThread[0]);
-		CloseHandle(hThread[1]);
+	WaitForMultipleObjects( 2, hThread , true , INFINITE  );  //Wait for both threads to be finished
 
-		if( !(ret->errorcode==0))
-			return ret->errorcode;
+	CloseHandle(hThread[0]);
+	CloseHandle(hThread[1]);
+
+	if( !(ret->errorcode==0))
+		return ret->errorcode;
 
 	printf("\n\n\nRace has been finished %c",7);
 	return 0;
@@ -177,15 +176,15 @@ int run (RACE *ret) {
 void gotoxy(int x, int y)
 {
 
-    HANDLE stdOutput;
-    COORD pos;
+	HANDLE stdOutput;
+	COORD pos;
 
-    stdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	stdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    pos.X = x;
-    pos.Y = y; 
+	pos.X = x;
+	pos.Y = y; 
 
-    SetConsoleCursorPosition(stdOutput, pos);
+	SetConsoleCursorPosition(stdOutput, pos);
 }
 
 bool confirm() {
@@ -199,7 +198,7 @@ bool confirm() {
 			system("cls");
 			return true;
 		}
-		
+
 		if(a==78 || a==110)  // N and n , failure
 		{	
 			system("cls");
@@ -227,7 +226,7 @@ void initUI(RACE *ret) {
 
 		a=getch();
 		test=false;
-	
+
 		if(a==49 ||  a==33)
 		{
 			printf("\n You want to choose Race? (y/n)"); 
@@ -248,7 +247,7 @@ void initUI(RACE *ret) {
 				decision=true;  
 				ret->knockOut_Active=true;
 			}
-				
+
 		}
 		if(a==51 ||  a==35 ||  a==-11)
 		{
@@ -286,7 +285,7 @@ void initUI(RACE *ret) {
 				printf("\nYou have choosen %d. Please insert a valid number (1-99)",ret->maxRounds);
 				a=getch();
 			}
-	
+
 		}while(!test);
 	}
 	if(ret->timeAttack_Active)
@@ -398,7 +397,7 @@ void initUI(RACE *ret) {
 			{
 				getName(ret->players[0].playername);
 			}
-				
+
 		}
 		if((a==50 ||  a==34) && ret->numberOfPlayers>1) 
 		{
@@ -434,7 +433,7 @@ void initUI(RACE *ret) {
 			if( (test) )
 				decision=true;
 		}
-	
+
 	}while(!decision);
 
 	decision=false;
@@ -451,10 +450,10 @@ void initUI(RACE *ret) {
 
 		if(a==49 ||  a==33)
 		{
-			printf("\n You want to start the race? (y/n)"); 
+			/*printf("\n You want to start the race? (y/n)"); 
 			test=confirm();
-			if( (test) )
-				decision=true;
+			if( (test) )*/
+			decision=true;
 		}
 	}while(!decision);
 
@@ -464,22 +463,22 @@ void initUI(RACE *ret) {
 
 void getName(char name[20]) {
 
-		char a;
-		size_t ln;
+	char a;
+	size_t ln;
 
-		printf("\nWelcome to the BG Carrera Application \n");
-		printf("_____________________________________________\n\n\n");
-		printf("\nPlease insert the name (at max. 10 characters) \n\n");
+	printf("\nWelcome to the BG Carrera Application \n");
+	printf("_____________________________________________\n\n\n");
+	printf("\nPlease insert the name (at max. 10 characters) \n\n");
 
-		fflush(stdin);
-		fgets(name, 10, stdin);  //Max length of name: 10 characters 
+	fflush(stdin);
+	fgets(name, 10, stdin);  //Max length of name: 10 characters 
 
-		ln = strlen(name) - 1;
-		//if (name[ln] == '\n') // if name is complete 
-			name[ln] = '\0';  // sign of a finished string
-		printf("Your name is '%s' ",name);
+	ln = strlen(name) - 1;
+	//if (name[ln] == '\n') // if name is complete 
+	name[ln] = '\0';  // sign of a finished string
+	printf("Your name is '%s' ",name);
 
-		a = getch();
+	a = getch();
 }
 
 void buildTable (RACE *ret) 
@@ -539,7 +538,7 @@ DWORD WINAPI updateTime(LPVOID data)
 				for(j=0;j<280;j++)
 					printf(" ");
 				gotoxy(0,rounds+3);
-					printf("Lap %02d  I                I                I                I\n",rounds+1);
+				printf("Lap %02d  I                I                I                I\n",rounds+1);
 				gotoxy(0,rounds+4);
 				printf("--------I----------------I----------------I----------------I-----------------");
 				gotoxy(0,rounds+5);
@@ -581,16 +580,16 @@ void printTime(RACE *ret, int player, int round, bool total)
 {
 	int minuten, sekunden, millesekunden;
 
-		if(total)  // prints the overall time
-		{
-			millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->startTime); //current time minus start time
-			if(ret->players[player].finished)
-				millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds]- ret->startTime ); // round time minus the time of when the race started
-		}
-		else{	  //prints the current round time		
-			millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->players[player].roundTime[round]);  //current time minus the time of when the lap started
-		}
-	
+	if(total)  // prints the overall time
+	{
+		millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->startTime); //current time minus start time
+		if(ret->players[player].finished)
+			millesekunden = (float) ( ret->players[player].roundTime[ret->players[player].rounds]- ret->startTime ); // round time minus the time of when the race started
+	}
+	else{	  //prints the current round time		
+		millesekunden = (float) ( ret->players[player].roundTime[round+1] - ret->players[player].roundTime[round]);  //current time minus the time of when the lap started
+	}
+
 	//Some crazy math nobody understands so don't even try it, you will fail anyway ;-)
 	sekunden = millesekunden / 1000;
 	minuten = sekunden / 60;
@@ -612,14 +611,14 @@ DWORD WINAPI raceloop(LPVOID data)
 			ret->players[k].roundTime[ret->players[k].rounds+1]=clock();
 			if(!(playerCrossesLine(& ret->device, k)==0)) //checks if there are currently player crossing the start point
 				goto ERROR1;
-				
+
 			if(ret->device.activeTrackSensor[k] && !ret->activeSensor[k] && !ret->players[k].finished) //if player is currently crossing the start
 			{     
 
 				ret->playerLine=k;
 				ret->activeSensor[k]=true;  //This is neccesarry to make sure that the player just gets one new round at a time
 
-				 //Big issue if there are 2 active game modes
+				//Big issue if there are 2 active game modes
 
 				if(ret->match_Active)
 					if(!(match(ret) == 0) )
@@ -631,12 +630,11 @@ DWORD WINAPI raceloop(LPVOID data)
 				{
 					nextRound(&ret->players[ret->playerLine]);
 
-					//dynamic number of rounds for time attack
+					//dynamic number of rounds for time attack mode
 					if(ret->players[ret->playerLine].rounds >= ret->maxRounds-1)
 					{
 						ret->maxRounds++;
 					}
-					
 				}
 			}
 
@@ -650,18 +648,16 @@ DWORD WINAPI raceloop(LPVOID data)
 
 				for(i=0;i<ret->numberOfPlayers;i++)
 				{
-					if(ret->players[i].rounds<0)
-						nextRound(&ret->players[i]);
+					ret->players[i].finished=true;  
+					nextRound(&ret->players[i]);
 
 					if(!(setPower( &ret->device,i,false ) == 0) ) //Turn off all tracks
 						goto ERROR4;
 
 					ret->players[i].finished=true;   
 					ret->players[i].endTime=clock();
-					for(j=ret->players[i].rounds;j<ret->maxRounds+1;j++)  //Sets all rounds to endTime (important for export)
-						ret->players[i].roundTime[j]=ret->players[i].endTime=clock();
 				}
-				
+
 				placingTimeAttack(ret);  //Afterwards setting the ranks
 			}
 		}
@@ -669,7 +665,7 @@ DWORD WINAPI raceloop(LPVOID data)
 
 	return 0;
 
-// Errorcodes
+	// Errorcodes
 
 ERROR1:  // player crosses line problem
 	gotoxy(5,5);
@@ -697,8 +693,9 @@ ERROR4:  // setPower problem
 	return -4;
 ERROR5: // placeholder 
 	gotoxy(5,5);
-	printf("Placeholder\n Please restart ");
+	printf("Placeholder\n Please restart anyway, Something went terrible wrong");
 	ret->finished=true;
+	ret->errorcode=-5;
 	return -5;
 }
 
