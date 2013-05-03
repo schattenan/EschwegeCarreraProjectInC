@@ -69,7 +69,7 @@
 | 03 | N2 - PPM Negativ|  
 | 12 | PPM Stärke|  
 | 22-39* | Sensoren |
-| 50 | Signal für aktives Bahn 1 | 
+| 50 | Signal für aktive Bahn 1 | 
 
 *24,33 Arduino Ports defekt, werden übersprungen
 
