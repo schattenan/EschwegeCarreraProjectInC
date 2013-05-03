@@ -60,26 +60,39 @@
 * N = Number of Rounds
 * "End" = End Sequence
 
-## 5. Verwendete Software & Tools ##
 
-### 5.1 Entwicklung ###
+## 5. Spezifikation der Arduino Ports ##
+
+| Port Number | Funktion |  
+|  :------:	| ------	|    
+| 02 | N1 - PPM Positiv|  
+| 03 | N2 - PPM Negativ|  
+| 12 | PPM Stärke|  
+| 22-39* | Sensoren |
+| 50 | Signal für aktives Bahn 1 | 
+
+*24,33 Arduino Ports defekt, werden übersprungen
+
+## 6. Verwendete Software & Tools ##
+
+### 6.1 Entwicklung ###
 
 * Visual Studio C++ 2010
 * Arduino IDE
 * Editra
 * Notepad++
 
-### 5.2 Backup & Software Versioning ###
+### 6.2 Backup & Software Versioning ###
 * Dropbox 
 * Github
 
-### 5.3 Runtime Software ###
+### 6.3 Runtime Software ###
 
 * Windows XP
 * XAMP (für die Urkunde)
 * Firefox (für den Druck der Urkunde)
 
-### 5.4 Erstellung der Doku ###
+### 6.4 Erstellung der Doku ###
 
 * LibreOffice / OpenOffice.org
 * Microsoft Office
@@ -87,7 +100,7 @@
 * MultiMarkdown Composer
 * Struktogrammeditor
 
-## 6. Softwareentwickler ##
+## 7. Softwareentwickler ##
 
 * Nils Winkelbach 
 	* Arduino
@@ -97,3 +110,4 @@
 	* Rennprogramm
 	* Logik der Urkunde
 	* Dokumentation der Spezifikation
+	* Arduino Unterstützung
