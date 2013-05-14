@@ -149,11 +149,9 @@ int run (RACE *ret) {
 	//Set all tracks active
 	for(i=0;i<ret->numberOfPlayers;i++)
 	{
-		if( !(setPower(&ret->device,i,true)==0) )
-		{
-			printf("error while setting a port\n Please restart ");
+		if( !(setPower(&ret->device,i,true)==0) )		
 			return -1;
-		}				
+
 		ret->players[0].roundTime[i]=clock(); 
 	}
 	printf("%c",7);
@@ -260,6 +258,7 @@ void initUI(RACE *ret) {
 				ret->timeAttack_Active=true;
 			}
 		}
+		system("cls");
 
 	}while(!decision && !test);  //Cant skip
 
@@ -468,10 +467,10 @@ void getName(char name[20]) {
 
 	printf("\nWelcome to the BG Carrera Application \n");
 	printf("_____________________________________________\n\n\n");
-	printf("\nPlease insert the name (at max. 10 characters) \n\n");
+	printf("\nPlease insert the name (at max. %d characters) \n\n",MAXNAMELENGTH);
 
 	fflush(stdin);
-	fgets(name, 10, stdin);  //Max length of name: 10 characters 
+	fgets(name, MAXNAMELENGTH, stdin);  //Max length of name: MAXNAMELENGTH
 
 	ln = strlen(name) - 1;
 	//if (name[ln] == '\n') // if name is complete 
@@ -700,12 +699,12 @@ ERROR5: // placeholder
 }
 
 int countdown(RACE *ret) {
-
+	
 	int i=0;
 	clock_t timer1;
-
+	
 	timer1=clock();
-	while(i<4) {   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
+	for(i=0;i<4;i++) {   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
 
 		ret->startTime = clock();
 
@@ -719,10 +718,8 @@ int countdown(RACE *ret) {
 				printf("error while setting a port\n Please restart ");
 				return -1;
 			}
-			i++;
-			if(i==3)  //after 3 seconds the game has officially started
-				ret->started=true;
 		}
 	}
+	ret->started=true;
 	return 0;
 }

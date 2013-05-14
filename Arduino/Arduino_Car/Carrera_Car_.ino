@@ -1,20 +1,21 @@
 int speedPin =12;                      // Voltage control pin
 int num_sensors = 16;                  // Number of the sensors
 int y;                                 // Lightsensor value
-int z=0;                                 // Variable
+int z=0;                               // Toggle variable
 int j;                                 // Lightsensor
 int In1= 2;                            // High/Low [H-Bridge: Direction]
 int In2= 3;                            // Low/High [H-Bridge: Direction_Inverted]
-int x=0;
 int m=0;
-int test=85;
-int race=50;
+int test=85;                          //Base speed
+int race=50;                         //Pin for track 1
 boolean raceActive=false;
-int speed[16]={test+25,test+25,test+15,test-45,test+85,test+15,test-25,test+25,test,test+85,test+15,test+35,test,test+25,test,255};
+
+int speed[16]={test+25,test+25,test+15,test,test+85,test+15,test-25,test+25,test,test+85,test+15,test+35,test,test+25,test,255};
 int port[16]={22,23,25,26,27,28,29,30,31,32,34,35,36,37,38,39};
 
+
 void setup() {
-    
+        Serial.begin(9600);
         pinMode(speedPin, OUTPUT);
         pinMode(In1, OUTPUT); 
         pinMode(In2, OUTPUT); 
@@ -25,7 +26,7 @@ void setup() {
         
         for (int i=0; i<num_sensors; i++) 
         {
-          j = i + 22 + m;                    // Used the if command, because the pins "24" and "33" are broken. Instead of them new pins were used.
+          j = i + 22 + m;         
         
           if (j == 24) 
           {
@@ -48,6 +49,7 @@ void setup() {
 }
 void loop()
 {   
+
     int  v;
     j=0;
     if(z==0)
@@ -79,7 +81,7 @@ void loop()
       if(v == 0)   //Pin active
       {  
         analogWrite(speedPin, speed[15]);
-        z=1;
+        z=1; 
       }
       else{
           if(!raceActive)
@@ -87,8 +89,8 @@ void loop()
             analogWrite(speedPin, 180);
             z=1;
             raceActive=true;
-          }
-        
+          }       
       }
     }
-} 
+ 
+}

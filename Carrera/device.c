@@ -74,7 +74,7 @@ int playerCrossesLine(DEVICE *ret, int track) {
 
 	// --------- Check  Port for Digital High ---------
 	int i=-1;
-	if ( !(getPortUE9(&ret->ue9,track+8,&i) == 0 ) )  //Gets port
+	if ( !(getPortUE9(&ret->ue9,track+8,&i) == 0 ) )  //Get port
 		return -1;
 
 	if(i>0)  //If active 
@@ -92,9 +92,8 @@ int setPower(DEVICE *ret, int track, bool energy ) {
 		ret->activeTrack[track] = 1;
 		if( !(setPortUE9(&ret->ue9, (track+4+8), 1) == 0) )  // see comments 
 			return -1;
-	}
-	
-	if(!energy) //power track off
+	}	
+	else //power track off
 	{
 		ret->activeTrack[track] = 0;
 		if ( !(setPortUE9(&ret->ue9, (track+4+8), 0) ==0) ) // see comments 
@@ -105,12 +104,10 @@ int setPower(DEVICE *ret, int track, bool energy ) {
 
 int startConnectionUE9 (CONNECTION *ret) {
 
-	ret->ue9_port = DEFAULTPORT;
-
 	printf("Trying to connect to UE9...");
 
 	//Opening TCP connection to UE9
-	 if( ( (ret->socketFD = openTCPConnection(DEFAULTIP, ret->ue9_port)) < 0)) //retunrs true if succesfull, native UE9 
+	 if( ( (ret->socketFD = openTCPConnection(DEFAULTIP, DEFAULTPORT)) < 0)) //retunrs true if succesfull, native UE9 
 	 {
 			return -1;
 	 }
@@ -123,9 +120,7 @@ int startConnectionUE9 (CONNECTION *ret) {
 		else{
 			return 0; //Everything perfect
 		}
-	 }
-	 
-	 
+	 } 
 }
 
 int setPortUE9(CONNECTION *ret, int portNumber, int value) {     
@@ -137,7 +132,7 @@ int setPortUE9(CONNECTION *ret, int portNumber, int value) {
 		8-15   EIO0-EIO7
 		
 	*/
-
+	
 	if((ret->error = eDO(ret->socketFD, portNumber, value)) != 0) // Reads port, return false if succesfull, native UE9 
 		return -1;
 	else
@@ -156,7 +151,6 @@ int getPortUE9(CONNECTION *ret, int portNumber, int *value) {
 	 
 	*/
 
-
 	if((ret->error = eDI(ret->socketFD, portNumber, &ret->lngState)) != 0)  // Get port, returns true if succesfull, native UE9 
 	{
 		printf("Could not read the state of Port %d", portNumber);
@@ -167,16 +161,12 @@ int getPortUE9(CONNECTION *ret, int portNumber, int *value) {
 		*value = (int) ret->lngState;
 		return 0;
 	}
-
 }
 
 void closeConnectionUE9 (CONNECTION *ret) {
   
   if(ret->error > 0)  //Connection issue
     printf("Received an error code of %ld\n", ret->error);
-  if(closeTCPConnection(ret->socketFD) < 0)  // closes conncetion, retunrs true if succesfull, native UE9 
-  {
-    printf("Error: failed to close socket\n");
-  }
-
+  if(closeTCPConnection(ret->socketFD) < 0)   
+    printf("Error: failed to close socket\n");  
 }

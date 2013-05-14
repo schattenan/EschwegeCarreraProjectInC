@@ -5,7 +5,6 @@ void exportCSV(RACE *ret);
 /*
 
 The function exports all race data into a csv-File.
-Afterwards it is opening the webpage for viewing and printing the results
 
 */
 

@@ -7,7 +7,6 @@ typedef struct {
 	ue9CalibrationInfo caliInfo;
 	long error;
 	long lngState;
-	int ue9_port; 
   
 }CONNECTION;
 

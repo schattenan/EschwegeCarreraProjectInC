@@ -20,7 +20,7 @@ End signal
 void exportCSV(RACE *ret)
 {
 	FILE *datei;
-	int i,j,roundStart,roundEnd;
+	int i,j,roundEnd;
 
 	if( (datei = fopen(EXPORTPATH,"w")) == NULL )
 	{
@@ -60,16 +60,14 @@ void exportCSV(RACE *ret)
 
 	
 	if(ret->timeAttack_Active){
-		roundStart=1;
 		roundEnd=ret->maxRounds;
 	}else {
-		roundStart=1;
 		roundEnd=ret->maxRounds+1;
 
 	}
 
 	//  ==  Round time for each player for each round ==
-	for(i=roundStart;i<roundEnd;i++)
+	for(i=1;i<roundEnd;i++)
 	{
 		for(j=0;j<ret->numberOfPlayers;j++)
 		{
@@ -112,9 +110,6 @@ void exportCSV(RACE *ret)
 	fprintf(datei,"End");
 
 	fclose(datei);
-
-	system(IMPORTPATH);  //Does open the website for printing
-
 }
 
 void exportTime(FILE *datei, RACE *ret, int player, int round)  
