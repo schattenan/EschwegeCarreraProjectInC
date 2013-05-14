@@ -15,7 +15,6 @@ int port[16]={22,23,25,26,27,28,29,30,31,32,34,35,36,37,38,39};
 
 
 void setup() {
-        Serial.begin(9600);
         pinMode(speedPin, OUTPUT);
         pinMode(In1, OUTPUT); 
         pinMode(In2, OUTPUT); 

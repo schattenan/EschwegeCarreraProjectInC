@@ -3,7 +3,7 @@
 
 int main() {
 
-	char f = getch();
+	char f;
 	RACE objectRace;
 	
 	printf("Build : %s \n\n",BUILD);
