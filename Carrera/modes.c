@@ -168,6 +168,11 @@ int run (RACE *ret) {
 		return ret->errorcode;
 
 	printf("\n\n\nRace has been finished %c",7);
+
+	ret->device.trafficLightStatus=4;
+	if( !(setLights(& ret->device)==0) )  //Setting the LEDs of the traffic lights
+		return -1;
+
 	return 0;
 }
 
@@ -704,7 +709,9 @@ int countdown(RACE *ret) {
 	clock_t timer1;
 	
 	timer1=clock();
-	for(i=0;i<4;i++) {   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
+
+	while(i<4) 
+	{   //As long as 3 seconds (for every step-1 (4-1 LEDs) one second )
 
 		ret->startTime = clock();
 
@@ -718,7 +725,9 @@ int countdown(RACE *ret) {
 				printf("error while setting a port\n Please restart ");
 				return -1;
 			}
+			i++;
 		}
+		
 	}
 	ret->started=true;
 	return 0;

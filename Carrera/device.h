@@ -117,7 +117,7 @@ return value
 int getPortUE9(CONNECTION *ret, int portNumber, int *value);
 /*
 
-The function recieves the status of one port 
+The function receives the status of one port 
 portNumber - Number of the specific port
 value - int pointer for writing the status, 1 for on, 0 for off
 
